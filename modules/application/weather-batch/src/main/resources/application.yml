@@ -1,0 +1,92 @@
+spring:
+  application:
+    name: weather-alarm-batch
+  
+  profiles:
+    active: local
+  
+  main:
+    web-application-type: none
+  
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
+
+# External API Configuration
+weather:
+  api:
+    vworld:
+      url: https://api.vworld.kr/req/address
+      key: ${VWORLD_API_KEY:test-key}
+    kma:
+      url: http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
+      key: ${KMA_API_KEY:test-key}
+
+# Slack Configuration
+slack:
+  webhook:
+    url: ${SLACK_WEBHOOK_URL:https://hooks.slack.com/services/test}
+
+logging:
+  level:
+    com.weather.alarm: INFO
+    org.springframework.batch: INFO
+
+---
+# Local 환경 설정
+spring:
+  config:
+    activate:
+      on-profile: local
+  
+  datasource:
+    url: jdbc:mysql://localhost:3307/weather_alarm?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    username: weather_user
+    password: weather123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+logging:
+  level:
+    com.weather.alarm: DEBUG
+    org.springframework.batch: DEBUG
+    org.hibernate.SQL: DEBUG
+
+---
+# Production 환경 설정
+spring:
+  config:
+    activate:
+      on-profile: prod
+  
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/weather_alarm?useSSL=true&serverTimezone=Asia/Seoul}
+    username: ${DB_USERNAME:weather_user}
+    password: ${DB_PASSWORD:weather123}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+logging:
+  level:
+    com.weather.alarm: INFO
+    org.springframework.batch: WARN
