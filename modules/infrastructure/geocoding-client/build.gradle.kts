@@ -12,13 +12,16 @@ java {
 }
 
 dependencies {
-    implementation(project(":modules:global-utils:common-utils"))
-    implementation(project(":modules:domain:user-domain"))
-
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-configuration-processor")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    
+    // Jackson Kotlin 모듈 추가
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    // Domain dependencies
+    implementation(project(":modules:domain:user-domain"))
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")

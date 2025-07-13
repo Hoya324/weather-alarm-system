@@ -13,4 +13,5 @@ include("modules:infrastructure:geocoding-client")
 include("modules:infrastructure:slack-client")
 
 // Application 모듈
-include("modules:application:weather-batch")
+include("modules:server:weather-api")
+include("modules:server:weather-batch")
