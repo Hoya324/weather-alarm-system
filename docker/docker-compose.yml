@@ -1,0 +1,121 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: outside-weather-mysql-${ENVIRONMENT}
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - outside-weather-network
+    restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+
+  outside-weather-api:
+    container_name: outside-weather-api-${ENVIRONMENT}
+    image: ${DOCKER_REPO}:api-${IMAGE_TAG}
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - outside-weather-network
+    volumes:
+      - ./logs:/logs
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - JAVA_OPTS=${JAVA_OPTS}
+      - TZ=Asia/Seoul
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - VWORLD_API_KEY=${VWORLD_API_KEY}
+      - KMA_API_KEY=${KMA_API_KEY}
+      - SERVER_PORT=${SERVER_PORT}
+      - LOGGING_LEVEL_ROOT=${LOGGING_LEVEL_ROOT}
+      - LOGGING_LEVEL_COM_WEATHER_ALARM=${LOGGING_LEVEL_COM_WEATHER_ALARM}
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  outside-weather-batch:
+    container_name: outside-weather-batch-${ENVIRONMENT}
+    image: ${DOCKER_REPO}:batch-${IMAGE_TAG}
+    networks:
+      - outside-weather-network
+    volumes:
+      - ./logs:/logs
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - JAVA_OPTS=${JAVA_OPTS}
+      - TZ=Asia/Seoul
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - VWORLD_API_KEY=${VWORLD_API_KEY}
+      - KMA_API_KEY=${KMA_API_KEY}
+      - LOGGING_LEVEL_ROOT=${LOGGING_LEVEL_ROOT}
+      - LOGGING_LEVEL_COM_WEATHER_ALARM=${LOGGING_LEVEL_COM_WEATHER_ALARM}
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      outside-weather-api:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: outside-weather-nginx-${ENVIRONMENT}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    networks:
+      - outside-weather-network
+    restart: unless-stopped
+    depends_on:
+      outside-weather-api:
+        condition: service_healthy
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: outside-weather-certbot-${ENVIRONMENT}
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    networks:
+      - outside-weather-network
+    restart: "no"
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+networks:
+  outside-weather-network:
+    driver: bridge
+    name: outside-weather-${ENVIRONMENT}
+
+volumes:
+  mysql_data:
+    name: outside-weather-mysql-data-${ENVIRONMENT}
+  certbot_conf:
+    name: outside-weather-certbot-conf-${ENVIRONMENT}
+  certbot_www:
+    name: outside-weather-certbot-www-${ENVIRONMENT}

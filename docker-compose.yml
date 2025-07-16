@@ -1,21 +1,59 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
-    container_name: weather-alarm-mysql
-    restart: unless-stopped
+    container_name: outside-weather-mysql-local
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: weather_alarm
-      MYSQL_USER: weather_user
-      MYSQL_PASSWORD: weather123
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=outside_weather
+      - MYSQL_USER=weather_user
+      - MYSQL_PASSWORD=weather_password
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - outside-weather-network
+    restart: unless-stopped
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+
+  # 로컬 개발용 - API와 Batch는 IDE에서 직접 실행
+  # 필요시 아래 서비스들을 주석 해제하여 사용
+
+  # outside-weather-api:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.api
+  #   container_name: outside-weather-api-local
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - outside-weather-network
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=local
+
+  # outside-weather-batch:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.batch
+  #   container_name: outside-weather-batch-local
+  #   networks:
+  #     - outside-weather-network
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=local
+
+networks:
+  outside-weather-network:
+    driver: bridge
 
 volumes:
   mysql_data:
-    driver: local
