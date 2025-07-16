@@ -324,8 +324,6 @@ jobs:
           
               # 애플리케이션 헬스체크 (더 많은 재시도)
               for i in {1..6}; do
-                  # 여러 헬스체크 엔드포인트 시도
-                  if curl -f -s --max-time 10 "http://localhost:8080/actuator/health" > /dev/null || \
                      curl -f -s --max-time 10 "http://localhost:8080/health" > /dev/null; then
                       echo "✅ API application health check passed"
                       break
