@@ -1,6 +1,6 @@
 package com.weather.alarm.domain.port.out
 
-import com.weather.alarm.domain.user.vo.Coordinate
+import com.weather.alarm.domain.notification.vo.Coordinate
 
 interface GeocodingPort {
 

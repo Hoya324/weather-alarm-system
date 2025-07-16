@@ -1,0 +1,115 @@
+spring:
+  application:
+    name: weather-batch
+  
+  profiles:
+    active: local
+  
+  main:
+    allow-bean-definition-overriding: true
+  
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  batch:
+    job:
+      enabled: false  # 애플리케이션 시작 시 자동 실행 방지
+    jdbc:
+      initialize-schema: always
+
+# API 설정
+weather:
+  api:
+    kma:
+      base-url: http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
+      service-key: mk6sFdhibofY28J1%2FHLsmsBnFewM6OeycmHj0L3xPve89k6MlaIkpDyGWnjVAqnTCmnU26o6qKRMVu58vlSkzQ%3D%3D
+
+vworld:
+  api:
+    key: 72FBD6BD-16CB-3097-802D-5C52F0F66D1A
+
+geocoding:
+  api:
+    vworld:
+      base-url: https://api.vworld.kr/req/address
+      service-key: 72FBD6BD-16CB-3097-802D-5C52F0F66D1A
+
+# 로깅 설정
+logging:
+  level:
+    com.weather.alarm: DEBUG
+    org.springframework.batch: INFO
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
+
+# 서버 설정
+server:
+  port: 8081
+
+---
+# Production 환경 설정
+spring:
+  config:
+    activate:
+      on-profile: prod
+  
+  datasource:
+    url: jdbc:mysql://localhost:3306/weather_alarm?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+    username: ${DB_USERNAME:weather_user}
+    password: ${DB_PASSWORD:weather_password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: false
+
+vworld:
+  api:
+    key: ${VWORLD_API_KEY}
+
+weather:
+  api:
+    kma:
+      base-url: http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
+      service-key: ${KMA_API_KEY}
+
+logging:
+  level:
+    com.weather.alarm: INFO
+    org.springframework.batch: WARN
+    org.springframework.web: WARN
+  file:
+    name: /logs/weather-batch.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30

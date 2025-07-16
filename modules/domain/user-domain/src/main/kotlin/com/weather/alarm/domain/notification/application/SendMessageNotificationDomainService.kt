@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 class SendMessageNotificationDomainService(
     private val notificationPort: NotificationPort
 ) {
-    private val logger = LoggerFactory.getLogger(SendMessageNotificationDomainService::class.java)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     @Async("notificationTaskExecutor")
     fun sendAuthCodeAsync(user: User) {

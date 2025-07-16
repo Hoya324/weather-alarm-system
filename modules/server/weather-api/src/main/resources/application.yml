@@ -44,9 +44,19 @@ spring:
     password:
     driver-class-name: org.h2.Driver
 
+weather:
+  api:
+    kma:
+      base-url: http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
+      service-key: mk6sFdhibofY28J1%2FHLsmsBnFewM6OeycmHj0L3xPve89k6MlaIkpDyGWnjVAqnTCmnU26o6qKRMVu58vlSkzQ%3D%3D
+
+geocoding:
+  api:
+    key: 72FBD6BD-16CB-3097-802D-5C52F0F66D1A
+
 vworld:
   api:
-    key: ${VWORLD_API_KEY:key}
+    key: 72FBD6BD-16CB-3097-802D-5C52F0F66D1A
 
 ---
 spring:
@@ -70,6 +80,12 @@ spring:
 vworld:
   api:
     key: ${VWORLD_API_KEY}
+
+weather:
+  api:
+    kma:
+      base-url: http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
+      service-key: ${KMA_API_KEY}
 
 logging:
   level:

@@ -1,6 +1,7 @@
 package com.weather.alarm.infrastructure.geocoding.adapter
 
-import com.weather.alarm.domain.user.vo.Coordinate
+import com.weather.alarm.domain.notification.vo.Coordinate
+import com.weather.alarm.domain.port.out.GeocodingPort
 import com.weather.alarm.infrastructure.geocoding.client.VWorldGeocodingClient
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -8,10 +9,10 @@ import org.springframework.stereotype.Component
 @Component
 class GeocodingAdapter(
     private val vWorldGeocodingClient: VWorldGeocodingClient
-) {
+) : GeocodingPort {
     private val logger = LoggerFactory.getLogger(GeocodingAdapter::class.java)
 
-    fun getCoordinatesByAddress(address: String): Coordinate? {
+    override fun getCoordinatesByAddress(address: String): Coordinate? {
         logger.debug("주소 좌표 변환 시작: $address")
 
         val response = vWorldGeocodingClient.getCoordinatesWithFallback(address)
@@ -21,11 +22,9 @@ class GeocodingAdapter(
             "OK" -> {
                 val point = response.response.result?.point
                 return if (point?.latitude != null && point.longitude != null) {
-                    val coordinate = Coordinate(
-                        latitude = point.latitude!!,
-                        longitude = point.longitude!!
-                    )
-                    logger.info("좌표 변환 성공 - 주소: $address -> 위도: ${coordinate.latitude}, 경도: ${coordinate.longitude}")
+                    val coordinate = Coordinate.from(point.latitude!!, point.longitude!!)
+
+                    logger.info("좌표 변환 성공 - 주소: $address -> nx: ${coordinate.nx}, ny: ${coordinate.ny}")
 
                     response.response.refined?.text?.let { refinedAddress ->
                         logger.debug("정제된 주소: $refinedAddress")
@@ -41,18 +40,15 @@ class GeocodingAdapter(
             "NOT_FOUND" -> {
                 logger.warn("주소를 찾을 수 없음: $address")
                 logAddressSuggestions(address)
-                null
             }
 
             "ERROR" -> {
                 val errorInfo = response.response.error
                 logger.error("VWorld API 에러 - 주소: $address, 코드: ${errorInfo?.code}, 메시지: ${errorInfo?.text}")
-                null
             }
 
             else -> {
                 logger.warn("알 수 없는 응답 상태 - 주소: $address, 상태: ${response.response.status}")
-                null
             }
         }
         return null
@@ -85,7 +81,7 @@ class GeocodingAdapter(
         }
     }
 
-    fun isValidAddress(address: String): Boolean {
+    override fun isValidAddress(address: String): Boolean {
         return try {
             val coordinate = getCoordinatesByAddress(address)
             coordinate != null

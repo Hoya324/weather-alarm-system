@@ -2,15 +2,7 @@ package com.weather.alarm.domain.weather.entity
 
 import com.weather.alarm.domain.weather.type.WeatherCondition
 import com.weather.alarm.domain.weather.type.WeatherDataSource
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.Index
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import java.time.LocalDate
@@ -22,7 +14,8 @@ import java.time.LocalDateTime
     indexes = [
         Index(name = "idx_user_date", columnList = "user_id, weather_date"),
         Index(name = "idx_weather_date", columnList = "weather_date"),
-        Index(name = "idx_coordinates", columnList = "latitude, longitude")
+        Index(name = "idx_coordinates", columnList = "latitude, longitude"),
+        Index(name = "idx_grid_coordinates", columnList = "nx, ny")
     ]
 )
 class WeatherInfo(
@@ -33,6 +26,8 @@ class WeatherInfo(
     _weatherDate: LocalDate,
     _latitude: Double,
     _longitude: Double,
+    _nx: Int,
+    _ny: Int,
     _temperature: Double? = null,
     _temperatureMin: Double? = null,
     _temperatureMax: Double? = null,
@@ -71,6 +66,12 @@ class WeatherInfo(
 
     @Column(precision = 10)
     var longitude: Double = _longitude
+
+    @Column(nullable = false)
+    var nx: Int = _nx
+
+    @Column(nullable = false)
+    var ny: Int = _ny
 
     @Column(precision = 5)
     var temperature: Double? = _temperature
