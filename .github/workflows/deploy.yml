@@ -1,0 +1,345 @@
+name: Deploy Outside Weather to EC2
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  EC2_REGION: ap-northeast-2
+  ECR_REGISTRY: public.ecr.aws
+  ECR_REPOSITORY: j8w6n7e6/outside-weather/outside-weather-ecr-repo
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.build.outputs.image-tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon Public ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
+
+      - name: Build and push Docker images
+        id: build
+        run: |
+          IMAGE_TAG="production-${{ github.run_number }}"
+          API_IMAGE_URI=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:api-${IMAGE_TAG}
+          BATCH_IMAGE_URI=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:batch-${IMAGE_TAG}
+          
+          echo "🔨 Building API Docker image..."
+          docker build -f Dockerfile.api -t ${API_IMAGE_URI} .
+          
+          echo "🔨 Building Batch Docker image..."
+          docker build -f Dockerfile.batch -t ${BATCH_IMAGE_URI} .
+          
+          echo "📤 Pushing API image to ECR..."
+          docker push ${API_IMAGE_URI}
+          
+          echo "📤 Pushing Batch image to ECR..."
+          docker push ${BATCH_IMAGE_URI}
+          
+          # Also tag as latest
+          docker tag ${API_IMAGE_URI} ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:api-latest
+          docker tag ${BATCH_IMAGE_URI} ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:batch-latest
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:api-latest
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:batch-latest
+          
+          echo "✅ Images pushed successfully"
+          echo "API: ${API_IMAGE_URI}"
+          echo "Batch: ${BATCH_IMAGE_URI}"
+          echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Clean up local images
+        run: |
+          echo "🧹 Cleaning up local build artifacts..."
+          docker image prune -f
+          docker builder prune -f
+
+  deploy:
+    needs: [ build-and-push ]
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials for EC2
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.EC2_REGION }}
+
+      - name: Copy configuration files to EC2
+        run: |
+          echo "📁 Preparing configuration files..."
+          
+          # docker-compose.yml을 base64로 인코딩
+          DOCKER_COMPOSE_CONTENT=$(base64 -w 0 < docker/docker-compose.yml)
+          
+          # nginx 설정 파일들을 base64로 인코딩
+          NGINX_CONF_CONTENT=$(base64 -w 0 < nginx/conf.d/nginx.conf)
+          NGINX_NO_SSL_CONTENT=$(base64 -w 0 < nginx/conf.d/nginx.no-ssl.conf)
+          
+          # 환경변수로 설정
+          echo "DOCKER_COMPOSE_CONTENT=$DOCKER_COMPOSE_CONTENT" >> $GITHUB_ENV
+          echo "NGINX_CONF_CONTENT=$NGINX_CONF_CONTENT" >> $GITHUB_ENV
+          echo "NGINX_NO_SSL_CONTENT=$NGINX_NO_SSL_CONTENT" >> $GITHUB_ENV
+
+      - name: Deploy to EC2
+        env:
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
+        run: |
+          echo "🚀 Starting deployment to production..."
+          echo "📦 Using image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+
+          # Create deployment script
+          cat > deploy_script.sh << 'DEPLOY_EOF'
+          #!/bin/bash
+          set -e
+
+          echo "🚀 Starting Outside Weather deployment..."
+          echo "Environment: production"
+          echo "Docker Repository: $DOCKER_REPO"
+          echo "Image Tag: $IMAGE_TAG"
+
+          # 디렉토리 이동 또는 생성
+          cd /home/ec2-user/outside-weather-deploy || {
+              mkdir -p /home/ec2-user/outside-weather-deploy && cd /home/ec2-user/outside-weather-deploy;
+          }
+
+          # .env 파일 확인
+          if [ ! -f ".env" ]; then
+              echo "❌ .env file not found! Please create it manually on EC2."
+              exit 1
+          fi
+
+          # 필요한 디렉토리 생성
+          mkdir -p nginx/conf.d logs
+
+          # docker-compose.yml 파일 생성
+          echo "📄 Creating docker-compose.yml..."
+          echo "$DOCKER_COMPOSE_CONTENT" | base64 -d > docker-compose.yml
+
+          # nginx 설정 파일 생성
+          echo "📄 Creating nginx configuration files..."
+          echo "$NGINX_CONF_CONTENT" | base64 -d > nginx/conf.d/nginx.conf.template
+          echo "$NGINX_NO_SSL_CONTENT" | base64 -d > nginx/conf.d/nginx.no-ssl.conf.template
+          
+          # 환경변수 치환
+          export ENVIRONMENT=production
+          envsubst '${ENVIRONMENT}' < nginx/conf.d/nginx.conf.template > nginx/conf.d/nginx.conf
+          envsubst '${ENVIRONMENT}' < nginx/conf.d/nginx.no-ssl.conf.template > nginx/conf.d/nginx.no-ssl.conf
+
+          # SSL 인증서 확인 및 nginx 설정 결정
+          if [ -d "/etc/letsencrypt/live/git-tree.com" ]; then
+              echo "✅ SSL certificate found, using HTTPS configuration"
+              cp nginx/conf.d/nginx.conf nginx/conf.d/default.conf
+          else
+              echo "⚠️ SSL certificate not found, using HTTP configuration"
+              cp nginx/conf.d/nginx.no-ssl.conf nginx/conf.d/default.conf
+          fi
+
+          echo "🔄 Stopping existing containers..."
+          docker compose down -v 2>/dev/null || docker-compose down -v 2>/dev/null || true
+
+          echo "🧹 Cleaning up old Docker images..."
+          # 현재 실행 중이지 않은 Outside Weather 이미지들 정리 (최근 3개 버전만 유지)
+          echo "📦 Cleaning up old Outside Weather images (keeping latest 3 versions)..."
+          docker images "$DOCKER_REPO" --format "{{.Repository}}:{{.Tag}}" | \
+          grep -E "production-[0-9]+" | \
+          sort -V -r | \
+          tail -n +4 | \
+          xargs -r docker rmi -f 2>/dev/null || true
+
+          # Dangling 이미지 정리
+          echo "🗑️ Removing dangling images..."
+          docker image prune -f
+
+          # 7일 이상된 미사용 이미지 정리
+          echo "🗑️ Removing unused images older than 7 days..."
+          docker image prune -a -f --filter "until=168h" || true
+
+          # 사용하지 않는 볼륨과 네트워크 정리
+          echo "🗑️ Cleaning up unused volumes and networks..."
+          docker volume prune -f
+          docker network prune -f
+
+          # 컨테이너 정리
+          echo "🗑️ Removing stopped containers..."
+          docker container prune -f
+          
+          # 포트 8080을 사용하는 프로세스 확인 및 종료
+          echo "🔍 Checking for processes using port 8080..."
+          if lsof -i :8080 > /dev/null 2>&1; then
+              echo "⚠️ Port 8080 is in use, attempting to free it..."
+              docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Ports}}" | grep -E "(:8080|0.0.0.0:8080)" | awk '{print $1}' | xargs -r docker stop || true
+              docker ps -a --format "table {{.ID}}\t{{.Names}}\t{{.Ports}}" | grep -E "(:8080|0.0.0.0:8080)" | awk '{print $1}' | xargs -r docker rm -f || true
+              sleep 5
+          fi
+
+          echo "📥 Pulling new images..."
+          docker pull $DOCKER_REPO:api-$IMAGE_TAG || exit 1
+          docker pull $DOCKER_REPO:batch-$IMAGE_TAG || exit 1
+
+          # 환경변수 export
+          export ENVIRONMENT=production
+          export DOCKER_REPO
+          export IMAGE_TAG
+          export SPRING_PROFILES_ACTIVE=prod
+
+          echo "🚀 Starting services..."
+          docker compose up -d 2>/dev/null || docker-compose up -d
+
+          echo "⏳ Waiting for services to stabilize..."
+          sleep 30
+
+          # 서비스 상태 확인
+          echo "📊 Checking service status..."
+          docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+          # 최종 디스크 사용량 확인
+          echo "💾 Current Docker disk usage:"
+          docker system df
+
+          # 헬스체크
+          if docker ps --filter "name=outside-weather-api-production" --filter "status=running" | grep -q outside-weather-api; then
+              echo "✅ Outside Weather API application is running"
+          
+              # 애플리케이션 헬스체크
+              if curl -f -s --max-time 10 "http://localhost:8080/actuator/health" > /dev/null; then
+                  echo "✅ API application health check passed"
+              else
+                  echo "⚠️ API application health check failed, but container is running"
+              fi
+          else
+              echo "❌ Outside Weather API application failed to start"
+              echo "📋 API Container logs:"
+              docker logs outside-weather-api-production --tail 50 2>&1 || echo "Failed to get API logs"
+              exit 1
+          fi
+
+          if docker ps --filter "name=outside-weather-batch-production" --filter "status=running" | grep -q outside-weather-batch; then
+              echo "✅ Outside Weather Batch application is running"
+          else
+              echo "❌ Outside Weather Batch application failed to start"
+              echo "📋 Batch Container logs:"
+              docker logs outside-weather-batch-production --tail 50 2>&1 || echo "Failed to get Batch logs"
+              exit 1
+          fi
+
+          # SSL 인증서 자동 획득 (첫 배포 시)
+          if [ ! -d "/etc/letsencrypt/live/git-tree.com" ]; then
+              echo "🔐 Attempting to obtain SSL certificate..."
+              docker compose run --rm certbot certonly \
+                  --webroot \
+                  --webroot-path=/var/www/certbot \
+                  --email admin@git-tree.com \
+                  --agree-tos \
+                  --no-eff-email \
+                  -d git-tree.com \
+                  -d www.git-tree.com || echo "⚠️ SSL certificate acquisition failed"
+          fi
+
+          echo "✅ Deployment completed successfully!"
+          echo "🌐 Application URL: https://git-tree.com"
+          DEPLOY_EOF
+
+          SCRIPT_CONTENT=$(cat deploy_script.sh | base64 -w 0)
+
+          # Upload and execute deployment script via SSM
+          COMMAND_ID=$(aws ssm send-command \
+            --region ${{ env.EC2_REGION }} \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "commands=[
+              \"echo '$SCRIPT_CONTENT' | base64 -d > /tmp/deploy.sh\",
+              \"chmod +x /tmp/deploy.sh\",
+              \"export ENVIRONMENT='production'\",
+              \"export DOCKER_REPO='${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}'\",
+              \"export IMAGE_TAG='$IMAGE_TAG'\",
+              \"export DOCKER_COMPOSE_CONTENT='${{ env.DOCKER_COMPOSE_CONTENT }}'\",
+              \"export NGINX_CONF_CONTENT='${{ env.NGINX_CONF_CONTENT }}'\",
+              \"export NGINX_NO_SSL_CONTENT='${{ env.NGINX_NO_SSL_CONTENT }}'\",
+              \"/tmp/deploy.sh\"
+            ]" \
+            --timeout-seconds 1800 \
+            --query 'Command.CommandId' \
+            --output text)
+
+          echo "📋 Command ID: $COMMAND_ID"
+          echo "command-id=$COMMAND_ID" >> $GITHUB_ENV
+
+      - name: Wait for deployment completion
+        run: |
+          chmod +x scripts/wait-for-deployment.sh
+          ./scripts/wait-for-deployment.sh ${{ env.command-id }} "${{ secrets.EC2_INSTANCE_ID }}"
+
+      - name: Verify deployment
+        run: |
+          echo "🔍 Verifying deployment..."
+          sleep 30
+
+          # Check if the application is responding
+          if curl -f -s --max-time 30 "https://git-tree.com/actuator/health" > /dev/null; then
+            echo "✅ Application is responding on https://git-tree.com"
+          else
+            echo "⚠️ Application health check via HTTPS failed, trying HTTP..."
+            if curl -f -s --max-time 30 "http://git-tree.com/actuator/health" > /dev/null; then
+              echo "✅ Application is responding on http://git-tree.com"
+            else
+              echo "⚠️ Application health check failed, but deployment may still be starting up"
+            fi
+          fi
+
+  notification:
+    needs: [ build-and-push, deploy ]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Deployment notification
+        env:
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "🎉 Deployment to production successful!"
+            echo "🌐 Application URL: https://git-tree.com"
+            echo "📦 Deployed image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+            echo "🔨 Build number: ${{ github.run_number }}"
+          else
+            echo "❌ Deployment to production failed!"
+            echo "📋 Check the deployment logs for details"
+            exit 1
+          fi

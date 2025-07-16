@@ -1,0 +1,42 @@
+# Build stage
+FROM openjdk:21-jdk-slim as builder
+
+WORKDIR /app
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
+COPY modules modules
+
+# Make gradlew executable
+RUN chmod +x ./gradlew
+
+# Build the application
+RUN ./gradlew clean build -x test
+
+# Runtime stage
+FROM openjdk:21-jre-slim
+
+WORKDIR /app
+
+# Add a non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Copy the built JAR
+COPY --from=builder /app/modules/server/weather-api/build/libs/*.jar app.jar
+
+# Change ownership to non-root user
+RUN chown appuser:appuser app.jar
+
+USER appuser
+
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
