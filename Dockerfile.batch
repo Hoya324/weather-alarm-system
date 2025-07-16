@@ -19,22 +19,19 @@ FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
-# Add a non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-
-# Install cron for scheduling
-RUN apt-get update && apt-get install -y cron && rm -rf /var/lib/apt/lists/*
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Copy the built JAR
 COPY --from=builder /app/modules/server/weather-batch/build/libs/*.jar app.jar
 
-# Change ownership to non-root user
+# Add a non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 RUN chown appuser:appuser app.jar
-
-# Create cron job for batch execution (every hour)
-RUN echo "0 * * * * java -jar /app/app.jar" | crontab -u appuser -
 
 USER appuser
 
-# Start cron daemon
-CMD ["sh", "-c", "cron && tail -f /dev/null"]
+EXPOSE 8081
+
+# Run the batch application (Spring Boot will handle scheduling)
+ENTRYPOINT ["java", "-jar", "app.jar"]

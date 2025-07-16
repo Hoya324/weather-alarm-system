@@ -24,7 +24,7 @@ services:
     container_name: outside-weather-api-${ENVIRONMENT}
     image: ${DOCKER_REPO}:api-${IMAGE_TAG}
     ports:
-      - "127.0.0.1:8080:8080"
+      - "8080:8080"  # 외부 접근 허용
     networks:
       - outside-weather-network
     volumes:
@@ -47,7 +47,7 @@ services:
       mysql:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -93,8 +93,7 @@ services:
       - outside-weather-network
     restart: unless-stopped
     depends_on:
-      outside-weather-api:
-        condition: service_healthy
+      - outside-weather-api
 
   certbot:
     image: certbot/certbot:latest

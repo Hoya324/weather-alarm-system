@@ -104,3 +104,9 @@ logging:
   level:
     com.weather.alarm: INFO
     org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.apache.catalina.core: WARN
+    org.apache.coyote: WARN
+    root: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

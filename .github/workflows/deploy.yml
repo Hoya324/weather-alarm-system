@@ -109,7 +109,7 @@ jobs:
           DOCKER_COMPOSE_CONTENT=$(base64 -w 0 < docker/docker-compose.yml)
           
           # nginx 설정 파일들을 base64로 인코딩
-          NGINX_CONF_CONTENT=$(base64 -w 0 < nginx/conf.d/nginx.conf)
+          NGINX_CONF_CONTENT=$(base64 -w 0 < nginx/conf.d/default.conf)
           NGINX_NO_SSL_CONTENT=$(base64 -w 0 < nginx/conf.d/nginx.no-ssl.conf)
           
           # 환경변수로 설정
@@ -145,31 +145,31 @@ jobs:
               exit 1
           fi
 
-          # 동적 환경변수 업데이트 (매 배포마다 변경되는 값들)
+          # 동적 환경변수 업데이트
           echo "🔄 Updating dynamic environment variables..."
           
-          # IMAGE_TAG 업데이트 (기존 값이 있으면 교체, 없으면 추가)
+          # IMAGE_TAG 업데이트
           if grep -q "^IMAGE_TAG=" .env; then
               sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=$IMAGE_TAG/" .env
           else
               echo "IMAGE_TAG=$IMAGE_TAG" >> .env
           fi
           
-          # ENVIRONMENT 업데이트 (기존 값이 있으면 교체, 없으면 추가)
+          # ENVIRONMENT 업데이트
           if grep -q "^ENVIRONMENT=" .env; then
               sed -i "s/^ENVIRONMENT=.*/ENVIRONMENT=production/" .env
           else
               echo "ENVIRONMENT=production" >> .env
           fi
           
-          # DOCKER_REPO 업데이트 (기존 값이 있으면 교체, 없으면 추가)
+          # DOCKER_REPO 업데이트
           if grep -q "^DOCKER_REPO=" .env; then
               sed -i "s|^DOCKER_REPO=.*|DOCKER_REPO=$DOCKER_REPO|" .env
           else
               echo "DOCKER_REPO=$DOCKER_REPO" >> .env
           fi
           
-          # SPRING_PROFILES_ACTIVE 업데이트 (기존 값이 있으면 교체, 없으면 추가)
+          # SPRING_PROFILES_ACTIVE 업데이트 
           if grep -q "^SPRING_PROFILES_ACTIVE=" .env; then
               sed -i "s/^SPRING_PROFILES_ACTIVE=.*/SPRING_PROFILES_ACTIVE=prod/" .env
           else
@@ -179,31 +179,42 @@ jobs:
           echo "✅ Dynamic environment variables updated"
           echo "📋 Current IMAGE_TAG: $IMAGE_TAG"
 
-          # 필요한 디렉토리 생성
+          # 필요한 디렉토리 생성 및 정리
           mkdir -p nginx/conf.d logs
-
+          
+          # nginx 설정 디렉토리 완전 정리
+          echo "🧹 Cleaning nginx configuration directory..."
+          rm -rf nginx/conf.d/*
+          
           # docker-compose.yml 파일 생성
           echo "📄 Creating docker-compose.yml..."
           echo "$DOCKER_COMPOSE_CONTENT" | base64 -d > docker-compose.yml
 
           # nginx 설정 파일 생성
           echo "📄 Creating nginx configuration files..."
-          echo "$NGINX_CONF_CONTENT" | base64 -d > nginx/conf.d/nginx.conf.template
+          echo "$NGINX_CONF_CONTENT" | base64 -d > nginx/conf.d/default.conf.template
           echo "$NGINX_NO_SSL_CONTENT" | base64 -d > nginx/conf.d/nginx.no-ssl.conf.template
           
           # 환경변수 치환
           export ENVIRONMENT=production
-          envsubst '${ENVIRONMENT}' < nginx/conf.d/nginx.conf.template > nginx/conf.d/nginx.conf
+          envsubst '${ENVIRONMENT}' < nginx/conf.d/default.conf.template > nginx/conf.d/default.conf
           envsubst '${ENVIRONMENT}' < nginx/conf.d/nginx.no-ssl.conf.template > nginx/conf.d/nginx.no-ssl.conf
 
           # SSL 인증서 확인 및 nginx 설정 결정
-          if [ -d "/etc/letsencrypt/live/git-tree.com" ]; then
+          if [ -d "/etc/letsencrypt/live/git-tree.com" ]; thenif [ -f "nginx/certbot/conf/live/git-tree.com/fullchain.pem" ]; then
               echo "✅ SSL certificate found, using HTTPS configuration"
-              cp nginx/conf.d/nginx.conf nginx/conf.d/default.conf
+              # SSL 설정을 default.conf로 복사하고 다른 파일들은 제거
+              cp nginx/conf.d/default.conf nginx/conf.d/default.conf
+              rm -f nginx/conf.d/default.conf nginx/conf.d/nginx.no-ssl.conf nginx/conf.d/*.template
           else
               echo "⚠️ SSL certificate not found, using HTTP configuration"
+              # HTTP 설정을 default.conf로 복사하고 다른 파일들은 제거
               cp nginx/conf.d/nginx.no-ssl.conf nginx/conf.d/default.conf
+              rm -f nginx/conf.d/default.conf nginx/conf.d/nginx.no-ssl.conf nginx/conf.d/*.template
           fi
+          
+          echo "📋 Final nginx configuration files:"
+          ls -la nginx/conf.d/
 
           echo "🔄 Stopping existing containers..."
           docker compose down -v 2>/dev/null || docker-compose down -v 2>/dev/null || true
@@ -247,7 +258,7 @@ jobs:
           docker pull $DOCKER_REPO:api-$IMAGE_TAG || exit 1
           docker pull $DOCKER_REPO:batch-$IMAGE_TAG || exit 1
 
-          # 환경변수 로드 (안전한 방식)
+          # 환경변수 로드
           echo "🔄 Loading environment variables..."
           
           # .env 파일의 각 라인을 처리
@@ -255,8 +266,8 @@ jobs:
               # 주석과 빈 줄 건너뛰기
               [[ $line =~ ^[[:space:]]*# ]] && continue
               [[ -z "${line// }" ]] && continue
-              
-              # 변수 export (따옴표로 감싸서 안전하게 처리)
+          
+              # 변수 export
               if [[ $line =~ ^([^=]+)=(.*)$ ]]; then
                   var_name="${BASH_REMATCH[1]}"
                   var_value="${BASH_REMATCH[2]}"
@@ -293,7 +304,7 @@ jobs:
           echo "📊 Checking service status..."
           docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
           
-          # 컨테이너 로그 확인 (문제가 있을 경우)
+          # 컨테이너 로그 확인
           for container in outside-weather-mysql-production outside-weather-api-production outside-weather-batch-production; do
               if ! docker ps --filter "name=$container" --filter "status=running" | grep -q $container; then
                   echo "⚠️ Container $container is not running. Checking logs..."
@@ -322,7 +333,7 @@ jobs:
           if docker ps --filter "name=outside-weather-api-production" --filter "status=running" | grep -q outside-weather-api; then
               echo "✅ Outside Weather API application is running"
           
-              # 애플리케이션 헬스체크 (더 많은 재시도)
+              # 애플리케이션 헬스체크
               for i in {1..6}; do
                      curl -f -s --max-time 10 "http://localhost:8080/health" > /dev/null; then
                       echo "✅ API application health check passed"
@@ -361,12 +372,12 @@ jobs:
           fi
 
           # SSL 인증서 자동 획득 (첫 배포 시)
-          if [ ! -d "/etc/letsencrypt/live/git-tree.com" ]; then
+          if [ ! -f "nginx/certbot/conf/live/git-tree.com/fullchain.pem" ]; then
               echo "🔐 Attempting to obtain SSL certificate..."
               docker compose run --rm certbot certonly \
                   --webroot \
                   --webroot-path=/var/www/certbot \
-                  --email admin@git-tree.com \
+                  --email hoyana1225@gmail.com \
                   --agree-tos \
                   --no-eff-email \
                   -d git-tree.com \

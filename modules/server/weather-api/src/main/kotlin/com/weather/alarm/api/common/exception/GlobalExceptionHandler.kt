@@ -13,11 +13,18 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.web.servlet.resource.NoResourceFoundException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
 
     private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
+
+    @ExceptionHandler(NoResourceFoundException::class)
+    fun handleNoResourceFoundException(e: NoResourceFoundException): ResponseEntity<String> {
+        logger.trace("Static resource not found: {}", e.resourcePath)
+        return ResponseEntity.notFound().build()
+    }
 
     @ExceptionHandler(UserDomainException::class)
     fun handleUserDomainException(e: UserDomainException): ResponseEntity<ApiResponse<Nothing>> {

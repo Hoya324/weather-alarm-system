@@ -28,22 +28,19 @@ spring:
       enabled: true
       path: /h2-console
   
-  batch:
-    job:
-      enabled: false  # 애플리케이션 시작 시 자동 실행 방지
-    jdbc:
-      initialize-schema: always
+  task:
+    scheduling:
+      enabled: true
 
-# API 설정
 weather:
   api:
     kma:
       base-url: http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
-      service-key: mk6sFdhibofY28J1%2FHLsmsBnFewM6OeycmHj0L3xPve89k6MlaIkpDyGWnjVAqnTCmnU26o6qKRMVu58vlSkzQ%3D%3D
+      service-key: ${KMA_API_KEY}
 
 vworld:
   api:
-    key: 72FBD6BD-16CB-3097-802D-5C52F0F66D1A
+    key: ${VWORLD_API_KEY}
 
 geocoding:
   api:
@@ -91,6 +88,16 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: false
+
+  task:
+    scheduling:
+      enabled: true
+
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
 
 vworld:
   api:
