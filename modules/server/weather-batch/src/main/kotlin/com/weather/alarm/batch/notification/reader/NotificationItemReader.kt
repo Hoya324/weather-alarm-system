@@ -55,7 +55,7 @@ class NotificationItemReader(
 
                 logger.debug("시간 매칭 체크: userId=${notification.user.id}, 설정시간=$notificationTimeStr, 현재시간=$currentTimeStr, 매칭=$isTimeMatch")
 
-                isTimeMatch && shouldSendNotification(notification, today)
+                isTimeMatch && shouldSendNotification(notification)
             }
 
         logger.info("시간 매칭된 알림 대상 개수: ${enabledNotifications.size}")
@@ -82,11 +82,12 @@ class NotificationItemReader(
         logger.info("=== NotificationItemReader 초기화 완료: ${notificationItems.size}개 아이템 ===")
     }
 
-    private fun shouldSendNotification(notification: NotificationInfo, today: LocalDate): Boolean {
+    private fun shouldSendNotification(notification: NotificationInfo): Boolean {
         return when (notification.notificationType) {
             NotificationType.DAILY -> true
             NotificationType.WEATHER -> true
             NotificationType.TEMPERATURE -> true
+            else -> false
         }
     }
 

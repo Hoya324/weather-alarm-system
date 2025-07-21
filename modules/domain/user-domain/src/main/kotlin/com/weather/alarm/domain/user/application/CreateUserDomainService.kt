@@ -20,22 +20,15 @@ class CreateUserDomainService(
     private val logger = LoggerFactory.getLogger(CreateUserDomainService::class.java)
 
     @Transactional
-    fun createUser(request: CreateUserDomainRequest): CreateUserDomainResult {
+    fun create(request: CreateUserDomainRequest): CreateUserDomainResult {
         logger.info("사용자 생성 시작 - 이름: ${request.name}")
 
-        // 유효성 검증
         validateRequest(request)
-
-        // 중복 검증
         validateDuplicates(request)
-
-        // 웹훅 URL 유효성 검증
         validateWebhookUrl(request.authSlackUrl)
 
-        // 인증 코드 생성
         val authCode = authCodeDomainService.generateAuthCode()
 
-        // 사용자 생성
         val user = User(
             _name = request.name,
             _authSlackUrl = request.authSlackUrl,

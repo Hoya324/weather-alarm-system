@@ -42,34 +42,44 @@ class NotificationInfo(
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     var updatedAt: LocalDateTime = _updatedAt
+        private set
 
     @Column(name = "deleted_at", nullable = true)
     var deletedAt: LocalDateTime? = _deletedAt
+        private set
 
     @Column(name = "slack_webhook_url", nullable = false, columnDefinition = "text")
     var slackWebHookUrl: String = _slackWebHookUrl
+        private set
 
     @Column(nullable = false, length = 500)
     var address: String = _address
+        private set
 
     @Embedded
     var coordinate: Coordinate? = _coordinate
+        private set
 
     @Column(name = "notification_enabled", nullable = false)
     var notificationEnabled: Boolean = _notificationEnabled
+        private set
 
     @Column(name = "notification_time", nullable = false)
     var notificationTime: LocalTime = _notificationTime
+        private set
 
     @Enumerated(EnumType.STRING)
     @Column(name = "notification_type", nullable = false, length = 20)
     var notificationType: NotificationType = _notificationType
+        private set
 
     @Column(name = "weather_types", length = 500)
     var weatherTypes: String? = _weatherTypes
+        private set
 
     @Column(name = "temperature_threshold")
     var temperatureThreshold: Int? = _temperatureThreshold
+        private set
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)

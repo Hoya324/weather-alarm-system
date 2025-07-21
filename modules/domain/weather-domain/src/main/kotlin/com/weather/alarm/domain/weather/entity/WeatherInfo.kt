@@ -54,69 +54,109 @@ class WeatherInfo(
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     var updatedAt: LocalDateTime = _updatedAt
+        private set
+
 
     @Column(name = "user_id", nullable = false)
     var userId: Long = _userId
+        private set
+
 
     @Column(name = "weather_date", nullable = false)
     var weatherDate: LocalDate = _weatherDate
+        private set
+
 
     @Column(precision = 10)
     var latitude: Double = _latitude
+        private set
+
 
     @Column(precision = 10)
     var longitude: Double = _longitude
+        private set
+
 
     @Column(nullable = false)
     var nx: Int = _nx
+        private set
+
 
     @Column(nullable = false)
     var ny: Int = _ny
+        private set
+
 
     @Column(precision = 5)
     var temperature: Double? = _temperature
+        private set
+
 
     @Column(name = "temperature_min", precision = 5)
     var temperatureMin: Double? = _temperatureMin
+        private set
+
 
     @Column(name = "temperature_max", precision = 5)
     var temperatureMax: Double? = _temperatureMax
+        private set
 
     @Column
     var humidity: Int? = _humidity
+        private set
+
 
     @Enumerated(EnumType.STRING)
     @Column(name = "weather_condition", length = 50)
     var weatherCondition: WeatherCondition? = _weatherCondition
+        private set
+
 
     @Column(name = "weather_description", length = 200)
     var weatherDescription: String? = _weatherDescription
+        private set
+
 
     @Column(precision = 5)
     var precipitation: Double? = _precipitation
+        private set
+
 
     @Column(name = "precipitation_probability")
     var precipitationProbability: Int? = _precipitationProbability
+        private set
+
 
     @Column(name = "wind_speed", precision = 5)
     var windSpeed: Double? = _windSpeed
+        private set
+
 
     @Column(name = "wind_direction")
     var windDirection: String? = _windDirection
+        private set
+
 
     @Column(name = "visibility_km", precision = 5)
     var visibilityKm: Double? = _visibilityKm
+        private set
+
 
     @Column(name = "uv_index")
     var uvIndex: Int? = _uvIndex
+        private set
+
 
     @Column(name = "air_pressure", precision = 7)
     var airPressure: Double? = _airPressure
+        private set
+
 
     @Enumerated(EnumType.STRING)
     @Column(name = "data_source", nullable = false, length = 20)
     var dataSource: WeatherDataSource = _dataSource
-
+        private set
+    
     fun getFeelsLikeTemperature(): Double? {
         return temperature?.let { temp ->
             windSpeed?.let { wind ->

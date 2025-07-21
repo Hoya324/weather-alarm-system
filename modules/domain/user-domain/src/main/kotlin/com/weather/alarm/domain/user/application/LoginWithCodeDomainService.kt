@@ -18,6 +18,7 @@ class LoginWithCodeDomainService(
         val user = userRepository.findByNameAndAuthCode(name, authCode)
 
         if (user != null) {
+            user.upgradeToReauthCode()
             logger.info("로그인 성공 - 사용자: ${user.name}, ID: ${user.id}, 인증 상태: ${user.verified}")
         } else {
             logger.warn("로그인 실패 - 이름 또는 인증코드가 일치하지 않음: $name")

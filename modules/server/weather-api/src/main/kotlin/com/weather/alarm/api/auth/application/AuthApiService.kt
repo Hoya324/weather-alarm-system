@@ -117,7 +117,7 @@ class AuthApiService(
             name = request.name,
             authSlackUrl = request.authSlackUrl
         )
-        val userResult = createUserDomainService.createUser(createUserDomainRequest)
+        val userResult = createUserDomainService.create(createUserDomainRequest)
         userResult.user
     }
 }
