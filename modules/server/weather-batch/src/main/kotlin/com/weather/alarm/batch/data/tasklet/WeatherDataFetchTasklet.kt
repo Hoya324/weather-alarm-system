@@ -1,4 +1,4 @@
-package com.weather.alarm.batch.tasklet
+package com.weather.alarm.batch.data.tasklet
 
 import com.weather.alarm.domain.notification.repository.NotificationInfoRepository
 import com.weather.alarm.domain.weather.entity.WeatherInfo
@@ -16,6 +16,11 @@ import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
+/**
+ * TODO: tasklet 기반 날씨 수집 및 저장 개선
+ *  - 트랜잭션 범위가 너무 길고, 외부 API와 같은 트랜잭션에서 작동됨
+ */
 
 @Component
 class WeatherDataFetchTasklet(
@@ -74,7 +79,6 @@ class WeatherDataFetchTasklet(
                             baseDate = todayStr
                         )
 
-                        // 날씨 데이터 파싱 및 저장
                         parseAndSaveWeatherData(weatherResponse, coordinate, today)
                     }
                 } catch (e: Exception) {
@@ -117,7 +121,6 @@ class WeatherDataFetchTasklet(
             weatherData[item.category] = item.fcstValue
         }
 
-        // WeatherInfo 엔티티 생성 및 저장
         val weatherInfo = WeatherInfo(
             _userId = coordinate.userId,
             _weatherDate = targetDate,

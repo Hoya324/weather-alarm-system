@@ -1,4 +1,4 @@
-package com.weather.alarm.batch.writer
+package com.weather.alarm.batch.notification.writer
 
 import com.weather.alarm.batch.dto.ProcessedNotificationItem
 import com.weather.alarm.domain.port.out.NotificationPort

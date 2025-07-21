@@ -1,12 +1,12 @@
 package com.weather.alarm.batch.config
 
+import com.weather.alarm.batch.data.tasklet.WeatherDataFetchTasklet
 import com.weather.alarm.batch.dto.NotificationItem
 import com.weather.alarm.batch.dto.ProcessedNotificationItem
 import com.weather.alarm.batch.listener.WeatherBatchJobExecutionListener
-import com.weather.alarm.batch.processor.NotificationItemProcessor
-import com.weather.alarm.batch.reader.NotificationItemReader
-import com.weather.alarm.batch.tasklet.WeatherDataFetchTasklet
-import com.weather.alarm.batch.writer.NotificationItemWriter
+import com.weather.alarm.batch.notification.processor.NotificationItemProcessor
+import com.weather.alarm.batch.notification.reader.NotificationItemReader
+import com.weather.alarm.batch.notification.writer.NotificationItemWriter
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder

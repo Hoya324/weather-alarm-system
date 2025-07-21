@@ -8,15 +8,6 @@ spring:
     deserialization:
       fail-on-unknown-properties: false
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        use_sql_comments: true
-
   h2:
     console:
       enabled: true
@@ -50,6 +41,15 @@ spring:
   config:
     activate:
       on-profile: local
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
 
   datasource:
     url: jdbc:h2:mem:weather_alarm_db
@@ -87,7 +87,7 @@ spring:
     database: mysql
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     show-sql: false
 
 vworld:

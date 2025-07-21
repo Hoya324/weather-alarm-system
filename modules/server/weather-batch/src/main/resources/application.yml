@@ -1,3 +1,4 @@
+# modules/server/weather-batch/src/main/resources/application.yml
 spring:
   application:
     name: weather-batch
@@ -9,7 +10,7 @@ spring:
     allow-bean-definition-overriding: true
   
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:mem:weather_alarm_db
     username: sa
     password:
     driver-class-name: org.h2.Driver
@@ -28,6 +29,13 @@ spring:
       enabled: true
       path: /h2-console
   
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
+      table-prefix: BATCH_
+  
   task:
     scheduling:
       enabled: true
@@ -42,22 +50,15 @@ vworld:
   api:
     key: ${VWORLD_API_KEY}
 
-geocoding:
-  api:
-    vworld:
-      base-url: https://api.vworld.kr/req/address
-      service-key: 72FBD6BD-16CB-3097-802D-5C52F0F66D1A
-
-# 로깅 설정
 logging:
   level:
     com.weather.alarm: DEBUG
     org.springframework.batch: INFO
     org.springframework.web: INFO
+    org.springframework.jdbc.core: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
 
-# 서버 설정
 server:
   port: 8081
 
@@ -82,7 +83,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:

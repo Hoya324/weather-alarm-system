@@ -42,9 +42,9 @@ log "Command ID: $COMMAND_ID"
 log "Instance ID: $INSTANCE_ID"
 log "Region: $EC2_REGION"
 
-# 최대 대기 시간 (30분)
-MAX_WAIT_TIME=1800
-WAIT_INTERVAL=15
+# 최대 대기 시간
+MAX_WAIT_TIME=4000
+WAIT_INTERVAL=30
 ELAPSED_TIME=0
 LAST_OUTPUT_CHECK=0
 
@@ -104,7 +104,6 @@ while [ $ELAPSED_TIME -lt $MAX_WAIT_TIME ]; do
             seconds=$((ELAPSED_TIME % 60))
             log "🔄 배포 진행 중... (${minutes}m ${seconds}s)"
 
-            # 1분마다 진행 상황 확인
             if [ $((ELAPSED_TIME - LAST_OUTPUT_CHECK)) -ge 60 ]; then
                 echo ""
                 echo "=== 현재 진행 상황 (최근 15줄) ==="

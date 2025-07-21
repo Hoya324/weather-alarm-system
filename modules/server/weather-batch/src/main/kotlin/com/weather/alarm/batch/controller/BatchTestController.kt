@@ -17,7 +17,6 @@ class BatchTestController(
     private val weatherBatchScheduler: WeatherBatchScheduler,
     @Qualifier("weatherDataFetchJob") private val weatherDataFetchJob: Job,
     @Qualifier("notificationSendJob") private val notificationSendJob: Job,
-    @Qualifier("weatherProcessCompleteJob") private val weatherProcessCompleteJob: Job
 ) {
 
     @PostMapping("/weather-fetch")

@@ -1,4 +1,4 @@
-package com.weather.alarm.batch.processor
+package com.weather.alarm.batch.notification.processor
 
 import com.weather.alarm.batch.dto.NotificationItem
 import com.weather.alarm.batch.dto.ProcessedNotificationItem
