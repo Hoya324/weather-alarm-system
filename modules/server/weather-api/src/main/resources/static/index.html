@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>시리야 날씨 알려줘 ~</title>
+    <!-- 파비콘을 구름 아이콘으로 변경 -->
     <link rel="icon" href="/placeholder.svg?height=32&width=32&text=☁️" type="image/svg+xml">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -959,6 +960,7 @@
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            justify-content: flex-end; /* 버튼을 오른쪽으로 정렬 */
         }
 
         /* Empty State */
@@ -1009,6 +1011,74 @@
             margin-bottom: 1.5rem;
         }
 
+        /* Time Slider Container */
+        .time-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 14px 18px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Slider Input */
+        .time-slider {
+            flex-grow: 1;
+            -webkit-appearance: none; /* Remove default styling */
+            appearance: none;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+            transition: background 0.3s ease;
+        }
+
+        .time-slider:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Slider Thumb (Handle) */
+        .time-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .time-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .time-slider::-webkit-slider-thumb:hover,
+        .time-slider::-moz-range-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        /* Display for the selected time */
+        .time-display {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            min-width: 60px; /* Ensure consistent width */
+            text-align: right;
+            font-variant-numeric: tabular-nums; /* Keep numbers aligned */
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .header {
@@ -1057,7 +1127,7 @@
             }
 
             .notification-actions {
-                justify-content: center;
+                justify-content: center; /* 모바일에서는 중앙 정렬 */
             }
 
             .step-label {
@@ -1335,9 +1405,12 @@
                             <label for="notificationTime" class="form-label">
                                 <i class="fas fa-clock"></i> 알림 시간
                             </label>
-                            <input type="time" id="notificationTime" name="notificationTime" class="form-control"
-                                   value="07:00" required>
-                            <div class="form-help">매일 알림을 받을 시간을 설정하세요.</div>
+                            <div class="time-slider-container">
+                                <input type="range" id="notificationTime" name="notificationTime" class="time-slider"
+                                       min="0" max="23" value="7" required>
+                                <span id="notificationTimeDisplay" class="time-display">07:00</span>
+                            </div>
+                            <div class="form-help">매일 알림을 받을 시간을 설정하세요. (시간 단위)</div>
                         </div>
                     </div>
 
@@ -1705,11 +1778,15 @@
 
         const formData = new FormData(e.target);
 
+        // 슬라이더에서 가져온 시간 값을 HH:00 형식으로 변환
+        const notificationTimeHour = parseInt(formData.get('notificationTime'));
+        const formattedNotificationTime = `${notificationTimeHour.toString().padStart(2, '0')}:00`;
+
         const data = {
             userId: parseInt(formData.get('userId')),
             slackWebHookUrl: formData.get('slackWebHookUrl'),
             address: formData.get('address'),
-            notificationTime: formData.get('notificationTime'),
+            notificationTime: formattedNotificationTime, // 변환된 시간 사용
             notificationType: formData.get('notificationType'),
             notificationEnabled: true
         };
@@ -1788,12 +1865,12 @@
                                         <i class="fas fa-cog"></i>
                                         <span>${getNotificationTypeText(notification.notificationType)}</span>
                                     </div>
-                                    ${notification.weatherTypes ? `
+                                    ${notification.weatherTypes && notification.weatherTypes.length > 0 ? `
                                     <div class="detail-row">
                                         <i class="fas fa-cloud-rain"></i>
                                         <span>${notification.weatherTypes.join(', ')}</span>
                                     </div>` : ''}
-                                    ${notification.temperatureThreshold ? `
+                                    ${notification.temperatureThreshold !== undefined && notification.temperatureThreshold !== null ? `
                                     <div class="detail-row">
                                         <i class="fas fa-thermometer-half"></i>
                                         <span>${notification.temperatureThreshold}°C 이하</span>
@@ -1886,6 +1963,20 @@
 
     // 알림 목록 조회 버튼
     document.getElementById('loadNotifications').addEventListener('click', loadNotifications);
+
+    // 슬라이더 UI 초기화 및 이벤트 리스너
+    const notificationTimeSlider = document.getElementById('notificationTime');
+    const notificationTimeDisplay = document.getElementById('notificationTimeDisplay');
+
+    function updateTimeDisplay() {
+        const hour = notificationTimeSlider.value;
+        notificationTimeDisplay.textContent = `${hour.toString().padStart(2, '0')}:00`;
+    }
+
+    // 초기 로드 시 슬라이더 디스플레이 업데이트
+    updateTimeDisplay();
+    // 슬라이더 값 변경 시 디스플레이 업데이트
+    notificationTimeSlider.addEventListener('input', updateTimeDisplay);
 
     // 초기 로드
     showAuthForm('login');

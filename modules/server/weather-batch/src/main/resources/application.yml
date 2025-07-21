@@ -1,4 +1,3 @@
-# modules/server/weather-batch/src/main/resources/application.yml
 spring:
   application:
     name: weather-batch
@@ -43,7 +42,6 @@ spring:
 weather:
   api:
     kma:
-      base-url: http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
       service-key: ${KMA_API_KEY}
 
 vworld:
@@ -53,9 +51,12 @@ vworld:
 logging:
   level:
     com.weather.alarm: DEBUG
+    com.weather.alarm.infrastructure.weather.client: DEBUG
+    com.weather.alarm.batch.data.tasklet: DEBUG
     org.springframework.batch: INFO
-    org.springframework.web: INFO
+    org.springframework.web: DEBUG
     org.springframework.jdbc.core: DEBUG
+    reactor.netty.http.client: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
 
@@ -107,7 +108,6 @@ vworld:
 weather:
   api:
     kma:
-      base-url: http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
       service-key: ${KMA_API_KEY}
 
 logging:
