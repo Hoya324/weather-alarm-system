@@ -1,4 +1,4 @@
-package com.weather.alarm.batch.dto
+package com.weather.alarm.batch.domain.dto
 
 data class ProcessedNotificationItem(
     val webhookUrl: String,

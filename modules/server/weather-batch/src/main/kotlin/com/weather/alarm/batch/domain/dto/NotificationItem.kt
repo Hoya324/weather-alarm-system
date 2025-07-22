@@ -1,4 +1,4 @@
-package com.weather.alarm.batch.dto
+package com.weather.alarm.batch.domain.dto
 
 import com.weather.alarm.domain.notification.entity.NotificationInfo
 import com.weather.alarm.domain.weather.entity.WeatherInfo

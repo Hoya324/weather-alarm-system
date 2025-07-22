@@ -4,9 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>시리야 날씨 알려줘 ~</title>
-    <!-- 파비콘을 구름 아이콘으로 변경 -->
-    <link rel="icon" href="/placeholder.svg?height=32&width=32&text=☁️" type="image/svg+xml">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 파비콘을 구름 이모지로 변경 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>">
+    <!-- Font Awesome CDN을 두 개로 backup -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://use.fontawesome.com/releases/v6.0.0/css/all.css" rel="stylesheet" crossorigin="anonymous">
+    
+    <!-- Font Awesome 로드 실패 시 스타일 폴백 -->
+    <style>
+        /* Font Awesome 폴백 - 아이콘이 로드되지 않을 경우 이모지 사용 */
+        .fa-cloud-sun::before, .fas.fa-cloud-sun::before { content: '🌤️'; }
+        .fa-check::before, .fas.fa-check::before { content: '✓'; }
+        .fa-bolt::before, .fas.fa-bolt::before { content: '⚡'; }
+        .fa-list::before, .fas.fa-list::before { content: '📋'; }
+        .fa-plus::before, .fas.fa-plus::before { content: '➕'; }
+        .fa-sync-alt::before, .fas.fa-sync-alt::before { content: '🔄'; }
+        .fa-sign-in-alt::before, .fas.fa-sign-in-alt::before { content: '🔑'; }
+        .fa-user-plus::before, .fas.fa-user-plus::before { content: '👤'; }
+        .fa-sign-out-alt::before, .fas.fa-sign-out-alt::before { content: '🚪'; }
+        .fa-user::before, .fas.fa-user::before { content: '👤'; }
+        .fa-key::before, .fas.fa-key::before { content: '🗝️'; }
+        .fab.fa-slack::before { content: '💬'; }
+        .fa-paper-plane::before, .fas.fa-paper-plane::before { content: '📤'; }
+        .fa-shield-alt::before, .fas.fa-shield-alt::before { content: '🛡️'; }
+        .fa-lock::before, .fas.fa-lock::before { content: '🔒'; }
+        .fa-bell::before, .fas.fa-bell::before { content: '🔔'; }
+        .fa-map-marker-alt::before, .fas.fa-map-marker-alt::before { content: '📍'; }
+        .fa-clock::before, .fas.fa-clock::before { content: '🕐'; }
+        .fa-cog::before, .fas.fa-cog::before { content: '⚙️'; }
+        .fa-cloud-rain::before, .fas.fa-cloud-rain::before { content: '🌧️'; }
+        .fa-thermometer-half::before, .fas.fa-thermometer-half::before { content: '🌡️'; }
+        .fa-save::before, .fas.fa-save::before { content: '💾'; }
+        .fa-pause::before, .fas.fa-pause::before { content: '⏸️'; }
+        .fa-play::before, .fas.fa-play::before { content: '▶️'; }
+        .fa-trash::before, .fas.fa-trash::before { content: '🗑️'; }
+        .fa-bell-slash::before, .fas.fa-bell-slash::before { content: '🔕'; }
+        .fa-exclamation-triangle::before, .fas.fa-exclamation-triangle::before { content: '⚠️'; }
+        .fa-exclamation-circle::before, .fas.fa-exclamation-circle::before { content: '❗'; }
+        .fa-check-circle::before, .fas.fa-check-circle::before { content: '✅'; }
+        
+        /* Font Awesome 폰트가 로드되지 않은 경우 이모지로 표시 */
+        .fas, .fab {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        }
+    </style>
     <style>
         * {
             margin: 0;
@@ -36,12 +77,13 @@
         }
 
         /* 배경 이미지별 위치, 크기, 초기 회전 및 블러 효과 */
+        /* 배경 이미지별 위치, 크기, 초기 회전 및 블러 효과 - 여러 경로 시도 */
         .weather-decoration-1 {
             top: 15%;
             right: 8%;
             width: 120px;
             height: 120px;
-            background-image: url('/images/weather/sun.png');
+            background-image: url('./images/weather/sun.png'), url('/images/weather/sun.png'), url('images/weather/sun.png');
             animation: float-slow 8s ease-in-out infinite;
             transform: rotate(10deg);
             filter: blur(0.5px);
@@ -52,7 +94,7 @@
             left: 5%;
             width: 100px;
             height: 100px;
-            background-image: url('/images/weather/rain-cloud.png');
+            background-image: url('./images/weather/rain-cloud.png'), url('/images/weather/rain-cloud.png'), url('images/weather/rain-cloud.png');
             animation: float-slow 6s ease-in-out infinite reverse;
             transform: rotate(-15deg);
             filter: blur(0.8px);
@@ -63,7 +105,7 @@
             right: 12%;
             width: 80px;
             height: 80px;
-            background-image: url('/images/weather/snow-cloud.png');
+            background-image: url('./images/weather/snow-cloud.png'), url('/images/weather/snow-cloud.png'), url('images/weather/snow-cloud.png');
             animation: float-slow 10s ease-in-out infinite;
             transform: rotate(25deg);
             filter: blur(0.6px);
@@ -74,7 +116,7 @@
             left: 12%;
             width: 90px;
             height: 90px;
-            background-image: url('/images/weather/cloud.png');
+            background-image: url('./images/weather/cloud.png'), url('/images/weather/cloud.png'), url('images/weather/cloud.png');
             animation: float-slow 7s ease-in-out infinite;
             transform: rotate(-8deg);
             filter: blur(0.7px);
@@ -85,7 +127,7 @@
             left: 3%;
             width: 70px;
             height: 70px;
-            background-image: url('/images/weather/cloud.png');
+            background-image: url('./images/weather/cloud.png'), url('/images/weather/cloud.png'), url('images/weather/cloud.png');
             animation: float-slow 9s ease-in-out infinite;
             transform: rotate(18deg);
             filter: blur(0.4px);
@@ -96,7 +138,7 @@
             right: 25%;
             width: 60px;
             height: 60px;
-            background-image: url('/images/weather/wind.png');
+            background-image: url('./images/weather/wind.png'), url('/images/weather/wind.png'), url('images/weather/wind.png');
             animation: float-slow 11s ease-in-out infinite;
             transform: rotate(-22deg);
             filter: blur(0.5px);
@@ -107,7 +149,7 @@
             right: 5%;
             width: 85px;
             height: 85px;
-            background-image: url('/images/weather/thunderstorm.png');
+            background-image: url('./images/weather/thunderstorm.png'), url('/images/weather/thunderstorm.png'), url('images/weather/thunderstorm.png');
             animation: float-slow 12s ease-in-out infinite;
             transform: rotate(12deg);
             filter: blur(0.6px);
@@ -118,7 +160,7 @@
             left: 15%;
             width: 75px;
             height: 75px;
-            background-image: url('/images/weather/rainbow.png');
+            background-image: url('./images/weather/rainbow.png'), url('/images/weather/rainbow.png'), url('images/weather/rainbow.png');
             animation: float-slow 13s ease-in-out infinite reverse;
             transform: rotate(-18deg);
             filter: blur(0.3px);

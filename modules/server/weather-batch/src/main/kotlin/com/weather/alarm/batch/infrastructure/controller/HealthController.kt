@@ -1,4 +1,4 @@
-package com.weather.alarm.batch.controller
+package com.weather.alarm.batch.infrastructure.controller
 
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.web.bind.annotation.GetMapping

@@ -1,6 +1,6 @@
-package com.weather.alarm.batch.notification.writer
+package com.weather.alarm.batch.core.chunk.writer
 
-import com.weather.alarm.batch.dto.ProcessedNotificationItem
+import com.weather.alarm.batch.domain.dto.ProcessedNotificationItem
 import com.weather.alarm.domain.port.out.NotificationPort
 import com.weather.alarm.domain.port.out.dto.NotificationRequest
 import org.slf4j.LoggerFactory
