@@ -5,49 +5,159 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>시리야 날씨 알려줘 ~</title>
     <!-- 파비콘을 구름 이모지로 변경 -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>">
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>">
+
     <!-- Font Awesome CDN을 두 개로 backup -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"
+          crossorigin="anonymous">
     <link href="https://use.fontawesome.com/releases/v6.0.0/css/all.css" rel="stylesheet" crossorigin="anonymous">
-    
-    <!-- Font Awesome 로드 실패 시 스타일 폴백 -->
+
+    <!-- 개선된 Font Awesome 폴백 시스템 -->
     <style>
-        /* Font Awesome 폴백 - 아이콘이 로드되지 않을 경우 이모지 사용 */
-        .fa-cloud-sun::before, .fas.fa-cloud-sun::before { content: '🌤️'; }
-        .fa-check::before, .fas.fa-check::before { content: '✓'; }
-        .fa-bolt::before, .fas.fa-bolt::before { content: '⚡'; }
-        .fa-list::before, .fas.fa-list::before { content: '📋'; }
-        .fa-plus::before, .fas.fa-plus::before { content: '➕'; }
-        .fa-sync-alt::before, .fas.fa-sync-alt::before { content: '🔄'; }
-        .fa-sign-in-alt::before, .fas.fa-sign-in-alt::before { content: '🔑'; }
-        .fa-user-plus::before, .fas.fa-user-plus::before { content: '👤'; }
-        .fa-sign-out-alt::before, .fas.fa-sign-out-alt::before { content: '🚪'; }
-        .fa-user::before, .fas.fa-user::before { content: '👤'; }
-        .fa-key::before, .fas.fa-key::before { content: '🗝️'; }
-        .fab.fa-slack::before { content: '💬'; }
-        .fa-paper-plane::before, .fas.fa-paper-plane::before { content: '📤'; }
-        .fa-shield-alt::before, .fas.fa-shield-alt::before { content: '🛡️'; }
-        .fa-lock::before, .fas.fa-lock::before { content: '🔒'; }
-        .fa-bell::before, .fas.fa-bell::before { content: '🔔'; }
-        .fa-map-marker-alt::before, .fas.fa-map-marker-alt::before { content: '📍'; }
-        .fa-clock::before, .fas.fa-clock::before { content: '🕐'; }
-        .fa-cog::before, .fas.fa-cog::before { content: '⚙️'; }
-        .fa-cloud-rain::before, .fas.fa-cloud-rain::before { content: '🌧️'; }
-        .fa-thermometer-half::before, .fas.fa-thermometer-half::before { content: '🌡️'; }
-        .fa-save::before, .fas.fa-save::before { content: '💾'; }
-        .fa-pause::before, .fas.fa-pause::before { content: '⏸️'; }
-        .fa-play::before, .fas.fa-play::before { content: '▶️'; }
-        .fa-trash::before, .fas.fa-trash::before { content: '🗑️'; }
-        .fa-bell-slash::before, .fas.fa-bell-slash::before { content: '🔕'; }
-        .fa-exclamation-triangle::before, .fas.fa-exclamation-triangle::before { content: '⚠️'; }
-        .fa-exclamation-circle::before, .fas.fa-exclamation-circle::before { content: '❗'; }
-        .fa-check-circle::before, .fas.fa-check-circle::before { content: '✅'; }
-        
-        /* Font Awesome 폰트가 로드되지 않은 경우 이모지로 표시 */
-        .fas, .fab {
+        /* Font Awesome 로드 확인 및 폴백 */
+        .icon-fallback {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-style: normal;
+            font-weight: normal;
+            display: inline-block;
+            text-decoration: inherit;
+            width: 1em;
+            text-align: center;
+        }
+
+        /* Font Awesome이 로드되지 않았을 때만 적용되는 폴백 */
+        .fas:not([class*="fa-"]):before,
+        .fab:not([class*="fa-"]):before {
+            content: "●";
+            color: currentColor;
+        }
+
+        /* 개별 아이콘 폴백 - 더 깔끔한 텍스트 기반 */
+        .fa-cloud-sun:before {
+            content: "☀";
+        }
+
+        .fa-check:before {
+            content: "✓";
+        }
+
+        .fa-bolt:before {
+            content: "⚡";
+        }
+
+        .fa-list:before {
+            content: "≡";
+        }
+
+        .fa-plus:before {
+            content: "+";
+        }
+
+        .fa-sync-alt:before {
+            content: "↻";
+        }
+
+        .fa-sign-in-alt:before {
+            content: "→";
+        }
+
+        .fa-user-plus:before {
+            content: "👤+";
+        }
+
+        .fa-sign-out-alt:before {
+            content: "←";
+        }
+
+        .fa-user:before {
+            content: "👤";
+        }
+
+        .fa-key:before {
+            content: "🔑";
+        }
+
+        .fab.fa-slack:before {
+            content: "💬";
+        }
+
+        .fa-paper-plane:before {
+            content: "✈";
+        }
+
+        .fa-shield-alt:before {
+            content: "🛡";
+        }
+
+        .fa-lock:before {
+            content: "🔒";
+        }
+
+        .fa-bell:before {
+            content: "🔔";
+        }
+
+        .fa-map-marker-alt:before {
+            content: "📍";
+        }
+
+        .fa-clock:before {
+            content: "🕐";
+        }
+
+        .fa-cog:before {
+            content: "⚙";
+        }
+
+        .fa-cloud-rain:before {
+            content: "🌧";
+        }
+
+        .fa-thermometer-half:before {
+            content: "🌡";
+        }
+
+        .fa-save:before {
+            content: "💾";
+        }
+
+        .fa-pause:before {
+            content: "⏸";
+        }
+
+        .fa-play:before {
+            content: "▶";
+        }
+
+        .fa-trash:before {
+            content: "🗑";
+        }
+
+        .fa-bell-slash:before {
+            content: "🔕";
+        }
+
+        .fa-exclamation-triangle:before {
+            content: "⚠";
+        }
+
+        .fa-exclamation-circle:before {
+            content: "❗";
+        }
+
+        .fa-check-circle:before {
+            content: "✅";
+        }
+
+        /* Font Awesome 로드 실패 감지 및 대체 */
+        @supports not (font-family: "Font Awesome 6 Free") {
+            .fas, .fab, .far {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
+            }
         }
     </style>
+
     <style>
         * {
             margin: 0;
@@ -70,14 +180,13 @@
             position: fixed;
             pointer-events: none;
             z-index: 0;
-            background-size: contain; /* 이미지가 잘리지 않고 보이도록 */
-            background-repeat: no-repeat; /* 이미지 반복 방지 */
-            background-position: center; /* 이미지 중앙 정렬 */
-            opacity: 0.15; /* 흐릿하게 보이도록 투명도 조절 */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.15;
         }
 
         /* 배경 이미지별 위치, 크기, 초기 회전 및 블러 효과 */
-        /* 배경 이미지별 위치, 크기, 초기 회전 및 블러 효과 - 여러 경로 시도 */
         .weather-decoration-1 {
             top: 15%;
             right: 8%;
@@ -1002,7 +1111,7 @@
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-            justify-content: flex-end; /* 버튼을 오른쪽으로 정렬 */
+            justify-content: flex-end;
         }
 
         /* Empty State */
@@ -1068,7 +1177,7 @@
         /* Slider Input */
         .time-slider {
             flex-grow: 1;
-            -webkit-appearance: none; /* Remove default styling */
+            -webkit-appearance: none;
             appearance: none;
             height: 8px;
             background: rgba(255, 255, 255, 0.3);
@@ -1116,9 +1225,9 @@
             font-size: 1.2rem;
             font-weight: 600;
             color: white;
-            min-width: 60px; /* Ensure consistent width */
+            min-width: 60px;
             text-align: right;
-            font-variant-numeric: tabular-nums; /* Keep numbers aligned */
+            font-variant-numeric: tabular-nums;
         }
 
         /* Responsive */
@@ -1169,7 +1278,7 @@
             }
 
             .notification-actions {
-                justify-content: center; /* 모바일에서는 중앙 정렬 */
+                justify-content: center;
             }
 
             .step-label {
@@ -1209,6 +1318,7 @@
         }
     </style>
 </head>
+
 <body>
 <!-- 배경에 흐릿하게 떠다니는 날씨 아이콘들 -->
 <div class="bg-decoration weather-decoration-1"></div>
@@ -1232,7 +1342,6 @@
     <div class="header">
         <h1><i class="fas fa-cloud-sun"></i> 시리야 날씨 알려줘 ~</h1>
         <p>맞춤형 날씨 정보를 Slack으로 받아보세요</p>
-
         <!-- User Info Bar -->
         <div class="user-info-bar" id="userInfoBar">
             <span class="user-name" id="currentUserName"></span>
@@ -1329,7 +1438,6 @@
                     <input type="text" id="name" name="name" class="form-control" required placeholder="홍길동">
                     <div class="form-help">실명을 입력해주세요.</div>
                 </div>
-
                 <div class="form-group">
                     <label for="authSlackUrl" class="form-label">
                         <i class="fab fa-slack"></i> Slack Webhook URL
@@ -1338,7 +1446,6 @@
                               placeholder="https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"></textarea>
                     <div class="form-help">Slack 워크스페이스의 Incoming Webhook URL을 입력하세요.</div>
                 </div>
-
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-paper-plane"></i> 인증 코드 발급
                 </button>
@@ -1381,7 +1488,6 @@
             </div>
             <div class="step-body">
                 <p class="mb-3" style="color: rgba(255, 255, 255, 0.8);">Slack으로 전송된 인증 코드를 입력하세요.</p>
-
                 <form id="verifyForm">
                     <div class="form-group">
                         <label for="verifySlackUrl" class="form-label">
@@ -1390,7 +1496,6 @@
                         <textarea id="verifySlackUrl" name="verifySlackUrl" class="form-control" required
                                   placeholder="https://hooks.slack.com/services/..."></textarea>
                     </div>
-
                     <div class="form-group">
                         <label for="authCode" class="form-label">
                             <i class="fas fa-lock"></i> 인증 코드
@@ -1400,7 +1505,6 @@
                                style="text-align: center; font-size: 1.2rem; letter-spacing: 0.2em;">
                         <div class="form-help">Slack 메시지에서 받은 인증 코드를 입력하세요.</div>
                     </div>
-
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-check"></i> 인증 확인
                     </button>
@@ -1420,10 +1524,8 @@
             </div>
             <div class="step-body">
                 <p class="mb-3" style="color: rgba(255, 255, 255, 0.8);">날씨 알림을 받을 조건과 시간을 설정하세요.</p>
-
                 <form id="notificationForm">
                     <input type="hidden" id="userId" name="userId">
-
                     <div class="form-group">
                         <label for="slackWebHookUrl" class="form-label">
                             <i class="fab fa-slack"></i> 알림받을 Slack Webhook URL
@@ -1432,7 +1534,6 @@
                                   placeholder="https://hooks.slack.com/services/..."></textarea>
                         <div class="form-help">알림을 받을 Slack 채널의 Webhook URL을 입력하세요.</div>
                     </div>
-
                     <div class="form-row two-cols">
                         <div class="form-group">
                             <label for="address" class="form-label">
@@ -1442,7 +1543,6 @@
                                    placeholder="서울특별시 강남구 테헤란로 152">
                             <div class="form-help">날씨 정보를 확인할 지역을 입력하세요.</div>
                         </div>
-
                         <div class="form-group">
                             <label for="notificationTime" class="form-label">
                                 <i class="fas fa-clock"></i> 알림 시간
@@ -1455,7 +1555,6 @@
                             <div class="form-help">매일 알림을 받을 시간을 설정하세요. (시간 단위)</div>
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label for="notificationType" class="form-label">
                             <i class="fas fa-cog"></i> 알림 타입
@@ -1467,7 +1566,6 @@
                         </select>
                         <div class="form-help">알림을 받을 조건을 선택하세요.</div>
                     </div>
-
                     <div id="weatherTypesDiv" class="conditional-section hidden">
                         <div class="conditional-title">
                             <i class="fas fa-cloud-rain"></i> 날씨 조건 설정
@@ -1479,7 +1577,6 @@
                             <div class="form-help">알림을 받고 싶은 날씨 조건을 쉼표로 구분하여 입력하세요.</div>
                         </div>
                     </div>
-
                     <div id="temperatureDiv" class="conditional-section hidden">
                         <div class="conditional-title">
                             <i class="fas fa-thermometer-half"></i> 온도 조건 설정
@@ -1487,12 +1584,10 @@
                         <div class="form-group mb-0">
                             <label for="temperatureThreshold" class="form-label">온도 임계값 (°C)</label>
                             <input type="number" id="temperatureThreshold" name="temperatureThreshold"
-                                   class="form-control"
-                                   min="-50" max="60" placeholder="5">
+                                   class="form-control" min="-50" max="60" placeholder="5">
                             <div class="form-help">이 온도 이하일 때 알림을 받습니다. (예: 5도 이하)</div>
                         </div>
                     </div>
-
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> 알림 설정 저장
                     </button>
@@ -1576,11 +1671,11 @@
                 currentUserName = userName;
             }
 
-            // 알림 관리 단계로 바로 이동
+            // 알림 관리 단계로 바로 이동하고 미리 알림 조회
             updateProgress(3);
             setTimeout(() => {
                 scrollToStep('step3');
-                loadNotifications();
+                loadNotifications(); // 항상 미리 알림 조회
             }, 500);
         } else {
             // 로그아웃 상태
@@ -1590,7 +1685,6 @@
             quickActions.classList.remove('visible');
             progressNav.classList.remove('visible');
             mainContent.classList.remove('visible');
-
             currentUserId = null;
             currentUserName = null;
         }
@@ -1601,7 +1695,6 @@
         if (confirm('로그아웃 하시겠습니까?')) {
             updateLoginState(false);
             showResult('loginResult', true, '로그아웃되었습니다.');
-
             // 폼 초기화
             document.getElementById('loginWithCodeForm').reset();
             document.getElementById('notificationForm').reset();
@@ -1612,12 +1705,10 @@
     // 진행 상태 업데이트
     function updateProgress(stepNumber) {
         currentStep = stepNumber;
-
         // 네비게이션 업데이트
         for (let i = 1; i <= 3; i++) {
             const navStep = document.getElementById(`navStep${i}`);
             const stepSection = document.getElementById(`step${i}`);
-
             navStep.classList.remove('active', 'completed');
             stepSection.classList.remove('active', 'completed');
 
@@ -1631,6 +1722,13 @@
                 navStep.querySelector('.step-circle').textContent = i;
                 stepSection.classList.add('active');
                 stepSection.querySelector('.step-status').textContent = '진행 중';
+
+                // 3단계에 도달하면 자동으로 알림 조회
+                if (i === 3) {
+                    setTimeout(() => {
+                        loadNotifications();
+                    }, 300);
+                }
             } else {
                 navStep.querySelector('.step-circle').textContent = i;
                 stepSection.querySelector('.step-status').textContent = '대기 중';
@@ -1648,6 +1746,13 @@
         const element = document.getElementById(stepId);
         if (element) {
             element.scrollIntoView({behavior: 'smooth', block: 'start'});
+
+            // 3단계로 스크롤할 때 자동으로 알림 조회
+            if (stepId === 'step3' && currentUserId) {
+                setTimeout(() => {
+                    loadNotifications();
+                }, 500);
+            }
         }
     }
 
@@ -1668,7 +1773,6 @@
         resultDiv.className = `alert ${isSuccess ? 'alert-success' : 'alert-error'}`;
         resultDiv.innerHTML = `<i class="fas fa-${isSuccess ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
         resultDiv.style.display = 'block';
-
         // 자동 숨김
         setTimeout(() => {
             resultDiv.style.display = 'none';
@@ -1699,12 +1803,10 @@
                 showResult('loginResult', true, result.data.message);
                 currentUserId = result.data.userId;
                 document.getElementById('userId').value = currentUserId;
-
                 // 슬랙 URL 자동 입력
                 if (result.data.authSlackUrl) {
                     document.getElementById('slackWebHookUrl').value = result.data.authSlackUrl;
                 }
-
                 // 로그인 상태로 전환
                 updateLoginState(true, data.name);
             } else {
@@ -1740,7 +1842,6 @@
             if (result.success) {
                 showResult('authResult', true, result.data.message);
                 document.getElementById('verifySlackUrl').value = data.authSlackUrl;
-
                 // 인증 단계로 이동
                 updateLoginState(false); // 아직 로그인 상태는 아님
                 document.getElementById('progressNav').classList.add('visible');
@@ -1782,7 +1883,6 @@
                 currentUserId = result.data.userId;
                 document.getElementById('userId').value = currentUserId;
                 document.getElementById('slackWebHookUrl').value = data.authSlackUrl;
-
                 updateProgress(2);
                 setTimeout(() => scrollToStep('step2'), 1000);
             } else {
@@ -1799,7 +1899,6 @@
     document.getElementById('notificationType').addEventListener('change', (e) => {
         const weatherDiv = document.getElementById('weatherTypesDiv');
         const temperatureDiv = document.getElementById('temperatureDiv');
-
         weatherDiv.classList.add('hidden');
         temperatureDiv.classList.add('hidden');
 
@@ -1819,7 +1918,6 @@
         toggleLoading(submitBtn, true);
 
         const formData = new FormData(e.target);
-
         // 슬라이더에서 가져온 시간 값을 HH:00 형식으로 변환
         const notificationTimeHour = parseInt(formData.get('notificationTime'));
         const formattedNotificationTime = `${notificationTimeHour.toString().padStart(2, '0')}:00`;
@@ -1880,57 +1978,56 @@
         try {
             const response = await fetch(`/api/notifications/user/${currentUserId}`);
             const result = await response.json();
-
             const listDiv = document.getElementById('notificationList');
 
             if (result.success && result.data.length > 0) {
                 listDiv.innerHTML = result.data.map((notification, index) => `
-                            <div class="notification-card" style="animation-delay: ${index * 0.1}s">
-                                <div class="notification-header">
-                                    <div class="notification-title">
-                                        알림 설정 #${notification.id}
-                                    </div>
-                                    <div class="notification-badge ${notification.notificationEnabled ? 'badge-active' : 'badge-inactive'}">
-                                        ${notification.notificationEnabled ? '활성화' : '비활성화'}
-                                    </div>
+                        <div class="notification-card" style="animation-delay: ${index * 0.1}s">
+                            <div class="notification-header">
+                                <div class="notification-title">
+                                    알림 설정 #${index + 1}
                                 </div>
-                                <div class="notification-details">
-                                    <div class="detail-row">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        <span>${notification.address}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <i class="fas fa-clock"></i>
-                                        <span>${notification.notificationTime}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <i class="fas fa-cog"></i>
-                                        <span>${getNotificationTypeText(notification.notificationType)}</span>
-                                    </div>
-                                    ${notification.weatherTypes && notification.weatherTypes.length > 0 ? `
-                                    <div class="detail-row">
-                                        <i class="fas fa-cloud-rain"></i>
-                                        <span>${notification.weatherTypes.join(', ')}</span>
-                                    </div>` : ''}
-                                    ${notification.temperatureThreshold !== undefined && notification.temperatureThreshold !== null ? `
-                                    <div class="detail-row">
-                                        <i class="fas fa-thermometer-half"></i>
-                                        <span>${notification.temperatureThreshold}°C 이하</span>
-                                    </div>` : ''}
-                                </div>
-                                <div class="notification-actions">
-                                    <button onclick="toggleNotification(${notification.id})"
-                                            class="btn btn-sm ${notification.notificationEnabled ? 'btn-danger' : 'btn-success'}">
-                                        <i class="fas fa-${notification.notificationEnabled ? 'pause' : 'play'}"></i>
-                                        ${notification.notificationEnabled ? '비활성화' : '활성화'}
-                                    </button>
-                                    <button onclick="deleteNotification(${notification.id})"
-                                            class="btn btn-sm btn-danger">
-                                        <i class="fas fa-trash"></i> 삭제
-                                    </button>
+                                <div class="notification-badge ${notification.notificationEnabled ? 'badge-active' : 'badge-inactive'}">
+                                    ${notification.notificationEnabled ? '활성화' : '비활성화'}
                                 </div>
                             </div>
-                        `).join('');
+                            <div class="notification-details">
+                                <div class="detail-row">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>${notification.address}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <i class="fas fa-clock"></i>
+                                    <span>${notification.notificationTime}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <i class="fas fa-cog"></i>
+                                    <span>${getNotificationTypeText(notification.notificationType)}</span>
+                                </div>
+                                ${notification.weatherTypes && notification.weatherTypes.length > 0 ? `
+                                <div class="detail-row">
+                                    <i class="fas fa-cloud-rain"></i>
+                                    <span>${notification.weatherTypes.join(', ')}</span>
+                                </div>` : ''}
+                                ${notification.temperatureThreshold !== undefined && notification.temperatureThreshold !== null ? `
+                                <div class="detail-row">
+                                    <i class="fas fa-thermometer-half"></i>
+                                    <span>${notification.temperatureThreshold}°C 이하</span>
+                                </div>` : ''}
+                            </div>
+                            <div class="notification-actions">
+                                <button onclick="toggleNotification(${notification.id})"
+                                        class="btn btn-sm ${notification.notificationEnabled ? 'btn-danger' : 'btn-success'}">
+                                    <i class="fas fa-${notification.notificationEnabled ? 'pause' : 'play'}"></i>
+                                    ${notification.notificationEnabled ? '비활성화' : '활성화'}
+                                </button>
+                                <button onclick="deleteNotification(${notification.id})"
+                                        class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i> 삭제
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
             } else {
                 listDiv.innerHTML = `
                         <div class="empty-state" style="grid-column: 1 / -1;">
@@ -1973,7 +2070,6 @@
             const response = await fetch(`/api/notifications/${notificationId}/toggle`, {
                 method: 'PATCH'
             });
-
             if (response.ok) {
                 loadNotifications();
             } else {
@@ -1991,7 +2087,6 @@
                 const response = await fetch(`/api/notifications/${notificationId}`, {
                     method: 'DELETE'
                 });
-
                 if (response.ok) {
                     loadNotifications();
                 } else {
@@ -2017,6 +2112,7 @@
 
     // 초기 로드 시 슬라이더 디스플레이 업데이트
     updateTimeDisplay();
+
     // 슬라이더 값 변경 시 디스플레이 업데이트
     notificationTimeSlider.addEventListener('input', updateTimeDisplay);
 
@@ -2024,4 +2120,5 @@
     showAuthForm('login');
 </script>
 </body>
+
 </html>
