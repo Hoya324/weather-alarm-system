@@ -25,7 +25,7 @@ class KmaWeatherClient(
     private val logger = LoggerFactory.getLogger(KmaWeatherClient::class.java)
 
     companion object {
-        private const val KMA_BASE_URL = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0"
+        private const val KMA_BASE_URL = "/1360000/VilageFcstInfoService_2.0"
         private const val DEFAULT_NUM_OF_ROWS = 1000
         private const val ULTRA_SRT_ROWS = 10
         private const val ULTRA_FCST_ROWS = 60
