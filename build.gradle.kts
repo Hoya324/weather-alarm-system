@@ -8,7 +8,7 @@ plugins {
 
 allprojects {
     group = "com.weather.alarm"
-    version = "0.0.1"
+    version = "v0.0.4"
 
     repositories {
         mavenCentral()
