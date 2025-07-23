@@ -1,0 +1,42 @@
+# .github/release.yml
+
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+      - documentation
+      - duplicate
+    authors:
+      - dependabot[bot]
+  categories:
+    - title: 🚀 주요 기능 추가
+      labels:
+        - feat
+        - enhance
+        - major
+    - title: 🐛 버그 수정
+      labels:
+        - bug
+        - fix
+        - hotfix
+    - title: ⚡ 성능 개선
+      labels:
+        - performance
+        - optimization
+    - title: 🔧 기술 개선
+      labels:
+        - refactor
+        - tech-debt
+        - chore
+    - title: 📚 문서 및 기타
+      labels:
+        - docs
+        - ci
+        - build
+        - github
+    - title: 🛸 인프라 및 설정
+      labels:
+        - infra
+    - title: 기타 변경사항
+      labels:
+        - "*"
