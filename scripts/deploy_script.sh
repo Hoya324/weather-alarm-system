@@ -88,21 +88,24 @@ echo "$NGINX_NO_SSL_CONTENT" | base64 -d > nginx/conf.d/nginx.no-ssl.conf.templa
 
 # 환경변수 치환
 export ENVIRONMENT=production
-envsubst '${ENVIRONMENT}' < nginx/conf.d/default.conf.template > nginx/conf.d/default.conf
-envsubst '${ENVIRONMENT}' < nginx/conf.d/nginx.no-ssl.conf.template > nginx/conf.d/nginx.no-ssl.conf
+envsubst '${ENVIRONMENT}' < nginx/conf.d/default.conf.template > nginx/conf.d/ssl.conf
+envsubst '${ENVIRONMENT}' < nginx/conf.d/nginx.no-ssl.conf.template > nginx/conf.d/no-ssl.conf
 
 # SSL 인증서 확인 및 nginx 설정 결정
 if [ -f "nginx/certbot/conf/live/git-tree.com/fullchain.pem" ]; then
     echo "✅ SSL certificate found, using HTTPS configuration"
-    # SSL 설정을 default.conf로 복사하고 다른 파일들은 제거
-    cp nginx/conf.d/default.conf nginx/conf.d/default.conf
-    rm -f nginx/conf.d/nginx.no-ssl.conf nginx/conf.d/*.template
+    # SSL 설정을 default.conf로 복사
+    cp nginx/conf.d/ssl.conf nginx/conf.d/default.conf
+    rm -f nginx/conf.d/no-ssl.conf
 else
     echo "⚠️ SSL certificate not found, using HTTP configuration"
-    # HTTP 설정을 default.conf로 복사하고 다른 파일들은 제거
-    cp nginx/conf.d/nginx.no-ssl.conf nginx/conf.d/default.conf
-    rm -f nginx/conf.d/default.conf nginx/conf.d/*.template
+    # HTTP 설정을 default.conf로 복사
+    cp nginx/conf.d/no-ssl.conf nginx/conf.d/default.conf
+    rm -f nginx/conf.d/ssl.conf
 fi
+
+# 템플릿 파일 정리
+rm -f nginx/conf.d/*.template
 
 echo "📋 Final nginx configuration files:"
 ls -la nginx/conf.d/

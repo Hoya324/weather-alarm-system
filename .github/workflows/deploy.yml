@@ -110,10 +110,12 @@ jobs:
           
           # nginx 설정 파일들을 base64로 인코딩
           NGINX_CONF_CONTENT=$(base64 -w 0 < nginx/conf.d/default.conf)
+          NGINX_NO_SSL_CONTENT=$(base64 -w 0 < nginx/conf.d/nginx.no-ssl.conf)
           
           # 환경변수로 설정
           echo "DOCKER_COMPOSE_CONTENT=$DOCKER_COMPOSE_CONTENT" >> $GITHUB_ENV
           echo "NGINX_CONF_CONTENT=$NGINX_CONF_CONTENT" >> $GITHUB_ENV
+          echo "NGINX_NO_SSL_CONTENT=$NGINX_NO_SSL_CONTENT" >> $GITHUB_ENV
 
       - name: Deploy to EC2
         env:
@@ -129,6 +131,7 @@ jobs:
           export IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
           export DOCKER_COMPOSE_CONTENT="${{ env.DOCKER_COMPOSE_CONTENT }}"
           export NGINX_CONF_CONTENT="${{ env.NGINX_CONF_CONTENT }}"
+          export NGINX_NO_SSL_CONTENT="${{ env.NGINX_NO_SSL_CONTENT }}"
           
           chmod +x scripts/deploy_script.sh
           ./scripts/deploy_script.sh "${{ secrets.EC2_INSTANCE_ID }}"
