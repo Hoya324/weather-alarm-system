@@ -8,7 +8,12 @@ Spring Boot + Kotlin 기반의 날씨 알림 시스템입니다. 사용자가 �
 
 ## 🌤️ 프로젝트 개요
 
-사용자는 웹 페이지에서 간편하게 날씨 알림을 설정하고, 지정된 시간에 Slack으로 날씨 정보를 받아볼 수 있습니다.
+사용자는 웹 페이지에서 간편하게 날씨 알림을 설정하고, 지정된 시간에 Slack으로 날씨 정보를 받아볼 수 있습니다. (커서를 움직이면 고양이 눈이 움직입니다..ㅎㅎ)
+
+| ![image1](https://github.com/user-attachments/assets/482f9c52-49ad-422c-a65a-d6bedfcd90de) | ![image2](https://github.com/user-attachments/assets/e14f981b-ab23-4a94-bfc1-79a96e9feee5) |
+|:-------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------:|
+| ![image3](https://github.com/user-attachments/assets/4a60d319-52df-4f53-a20f-600039f8bfac) | ![image4](https://github.com/user-attachments/assets/99aa538c-5ae5-458d-becd-ebd1cedc8bfb) |
+
 
 ### 주요 기능
 
@@ -176,7 +181,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 관련 링크
 
-- **서비스 바로가기**: [https://git-tree.com/](https://git-tree.com/)
+- **서비스 바로가기**: [링크](https://heyssiri-weather.vercel.app/)
 - **기상청 API**: [공공데이터포털](https://www.data.go.kr)
 - **VWorld API**: [브이월드](https://www.vworld.kr)
 - **Slack API**: [Slack Incoming Webhooks](https://api.slack.com/messaging/webhooks)
