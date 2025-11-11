@@ -181,7 +181,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 관련 링크
 
-- **서비스 바로가기**: [링크](https://heyssiri-weather.vercel.app/)
+- **서비스 바로가기**: [링크](https://heysiri-weather.vercel.app/)
 - **기상청 API**: [공공데이터포털](https://www.data.go.kr)
 - **VWorld API**: [브이월드](https://www.vworld.kr)
 - **Slack API**: [Slack Incoming Webhooks](https://api.slack.com/messaging/webhooks)
