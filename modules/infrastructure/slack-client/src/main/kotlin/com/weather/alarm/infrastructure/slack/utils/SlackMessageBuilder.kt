@@ -34,16 +34,18 @@ class SlackMessageBuilder {
         return sb.toString()
     }
 
-    private fun appendHeader(sb: StringBuilder, notificationInfo: NotificationInfo, weatherInfo: WeatherInfo) {
+    private fun appendHeader(
+        sb: StringBuilder,
+        notificationInfo: NotificationInfo,
+        weatherInfo: WeatherInfo
+    ) {
         val address = notificationInfo.address
         val date = weatherInfo.weatherDate.format(DateTimeFormatter.ofPattern("MM월 dd일"))
         val notificationType = getNotificationTypeText(notificationInfo.notificationType)
         val statusIcon = getWeatherStatusIcon(weatherInfo.getOverallWeatherStatus())
 
-        sb.append("┌─────────────────────────────────┐\n")
-        sb.append("│  ${statusIcon} *${address} ${notificationType}*  │\n")
-        sb.append("│           ${date}              │\n")
-        sb.append("└─────────────────────────────────┘\n")
+        sb.append("🏠 *${address} ${notificationType}*\n")
+        sb.append("📅 ${date} ${statusIcon}\n")
     }
 
     private fun appendEmergencyAlerts(sb: StringBuilder, weatherInfo: WeatherInfo) {
@@ -79,7 +81,10 @@ class SlackMessageBuilder {
         }
     }
 
-    private fun buildTemperatureAlert(notificationInfo: NotificationInfo, weatherInfo: WeatherInfo): String? {
+    private fun buildTemperatureAlert(
+        notificationInfo: NotificationInfo,
+        weatherInfo: WeatherInfo
+    ): String? {
         return notificationInfo.temperatureThreshold?.let { threshold ->
             weatherInfo.getCurrentTemp()?.let { temp ->
                 if (temp <= threshold) {
@@ -89,7 +94,10 @@ class SlackMessageBuilder {
         }
     }
 
-    private fun buildWeatherAlert(notificationInfo: NotificationInfo, weatherInfo: WeatherInfo): String? {
+    private fun buildWeatherAlert(
+        notificationInfo: NotificationInfo,
+        weatherInfo: WeatherInfo
+    ): String? {
         val weatherTypes = notificationInfo.getWeatherTypesList()
         return if (weatherTypes.isNotEmpty()) {
             weatherInfo.weatherCondition?.let { condition ->
@@ -101,14 +109,13 @@ class SlackMessageBuilder {
     }
 
     private fun appendCurrentWeather(sb: StringBuilder, weatherInfo: WeatherInfo) {
-        sb.append("\n🌤️ *현재 날씨 상황*\n")
-        sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+        sb.append("\n🌤️ *현재 날씨 상황*\n\n")
 
         val weatherItems = mutableListOf<String>()
-        
+
         // 온도 (체감온도 포함)
         weatherInfo.getCurrentTemp()?.let { temp ->
-            var tempText = "🌡️ **기온:** ${temp.toInt()}°C"
+            var tempText = "🌡️ *기온:* ${temp.toInt()}°C"
             weatherInfo.getFeelsLikeTemperature()?.let { feelsLike ->
                 if (Math.abs(feelsLike - temp) > 2) {
                     tempText += " (체감 ${feelsLike.toInt()}°C)"
@@ -120,17 +127,17 @@ class SlackMessageBuilder {
         // 습도
         weatherInfo.getCurrentHumidityValue()?.let { humidity ->
             val comfortLevel = getHumidityComfortLevel(humidity)
-            val comfortEmoji = when(comfortLevel) {
+            val comfortEmoji = when (comfortLevel) {
                 "건조" -> "🔥"
                 "습함" -> "💦"
                 else -> "✅"
             }
-            weatherItems.add("💧 **습도:** ${humidity}% ${comfortEmoji} _${comfortLevel}_")
+            weatherItems.add("💧 *습도:* ${humidity}% ${comfortEmoji} _${comfortLevel}_")
         }
 
         // 바람
         weatherInfo.getCurrentWindSpeedValue()?.let { windSpeed ->
-            var windText = "💨 **바람:** ${windSpeed}m/s"
+            var windText = "💨 *바람:* ${windSpeed}m/s"
             weatherInfo.getWindDirectionDescription()?.let { direction ->
                 windText += " ${direction}"
             }
@@ -143,7 +150,7 @@ class SlackMessageBuilder {
         // 현재 강수
         if (weatherInfo.hasCurrentPrecipitation()) {
             weatherInfo.currentPrecipitation?.let { rain ->
-                var rainText = "🌧️ **현재 강수:** ${rain}mm/h"
+                var rainText = "🌧️ *현재 강수:* ${rain}mm/h"
                 weatherInfo.currentPrecipitationType?.let { type ->
                     val precipType = getPrecipitationTypeText(type)
                     rainText += " _${precipType}_"
@@ -151,15 +158,14 @@ class SlackMessageBuilder {
                 weatherItems.add(rainText)
             }
         }
-        
+
         weatherItems.forEach { item ->
             sb.append("${item}\n")
         }
     }
 
     private fun appendTodayForecast(sb: StringBuilder, weatherInfo: WeatherInfo) {
-        sb.append("\n📅 *오늘 하루 예보*\n")
-        sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+        sb.append("\n📅 *오늘 하루 예보*\n\n")
 
         // 최저/최고 온도
         appendTemperatureRange(sb, weatherInfo)
@@ -173,17 +179,17 @@ class SlackMessageBuilder {
 
     private fun appendTemperatureRange(sb: StringBuilder, weatherInfo: WeatherInfo) {
         if (weatherInfo.temperatureMin != null || weatherInfo.temperatureMax != null) {
-            sb.append("🌡️ **일교차:** ")
-            weatherInfo.temperatureMin?.let { min -> 
+            sb.append("🌡️ *일교차:* ")
+            weatherInfo.temperatureMin?.let { min ->
                 val minEmoji = if (min < 5) "🥶" else if (min < 15) "😰" else "😊"
-                sb.append("${minEmoji} 최저 **${min.toInt()}°C**") 
+                sb.append("${minEmoji} 최저 *${min.toInt()}°C*")
             }
             if (weatherInfo.temperatureMin != null && weatherInfo.temperatureMax != null) {
                 sb.append(" ↔️ ")
             }
-            weatherInfo.temperatureMax?.let { max -> 
+            weatherInfo.temperatureMax?.let { max ->
                 val maxEmoji = if (max > 30) "🔥" else if (max > 25) "😎" else "😊"
-                sb.append("${maxEmoji} 최고 **${max.toInt()}°C**") 
+                sb.append("${maxEmoji} 최고 *${max.toInt()}°C*")
             }
             sb.append("\n")
         }
@@ -197,25 +203,25 @@ class SlackMessageBuilder {
             precipDescription != null && precipDescription != "강수없음" -> {
                 val emoji = getPrecipitationEmoji(weatherInfo.precipitationType)
                 val skyInfo = skyDescription?.let { " _${it}_" } ?: ""
-                "${emoji} **${precipDescription}**${skyInfo}"
+                "${emoji} *${precipDescription}*${skyInfo}"
             }
 
             skyDescription != null -> {
                 val emoji = getSkyEmoji(weatherInfo.skyCondition)
-                "${emoji} **${skyDescription}**"
+                "${emoji} *${skyDescription}*"
             }
 
             weatherInfo.weatherCondition != null -> {
                 val emoji = getWeatherEmoji(weatherInfo.weatherCondition!!)
                 val description = getWeatherDescription(weatherInfo.weatherCondition!!)
-                "${emoji} **${description}**"
+                "${emoji} *${description}*"
             }
 
             else -> null
         }
 
         weatherText?.let {
-            sb.append("🌤️ **하늘상태:** ${it}\n")
+            sb.append("🌤️ *하늘상태:* ${it}\n")
         }
     }
 
@@ -233,10 +239,10 @@ class SlackMessageBuilder {
                 probability >= 20 -> "낮음"
                 else -> "매우낮음"
             }
-            sb.append("${probEmoji} **강수확률:** ${probability}% _${probText}_")
+            sb.append("${probEmoji} *강수확률:* ${probability}% _${probText}_")
             weatherInfo.precipitation?.let { precipitation ->
                 if (precipitation > 0) {
-                    sb.append(" 💧 **예상강수량:** ${precipitation}mm")
+                    sb.append(" 💧 *예상강수량:* ${precipitation}mm")
                 }
             }
             sb.append("\n")
@@ -248,7 +254,6 @@ class SlackMessageBuilder {
 
         if (detailItems.isNotEmpty()) {
             sb.append("\n🔍 *상세 정보*\n")
-            sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
             detailItems.forEach { item ->
                 sb.append("${item}\n")
             }
@@ -265,19 +270,19 @@ class SlackMessageBuilder {
                 visibility >= 1 -> "보통 😐"
                 else -> "나쁨 ⚠️"
             }
-            items.add("👁️ **가시거리:** ${visibility}km _${visibilityLevel}_")
+            items.add("👁️ *가시거리:* ${visibility}km _${visibilityLevel}_")
         }
 
         weatherInfo.uvIndex?.let { uv ->
             val uvLevel = getUvLevel(uv)
-            val uvEmoji = when(uvLevel) {
+            val uvEmoji = when (uvLevel) {
                 "위험" -> "🚨"
                 "매우높음" -> "🔴"
                 "높음" -> "🟠"
                 "보통" -> "🟡"
                 else -> "🟢"
             }
-            items.add("☀️ **자외선지수:** ${uv} ${uvEmoji} _${uvLevel}_")
+            items.add("☀️ *자외선지수:* ${uv} ${uvEmoji} _${uvLevel}_")
         }
 
         weatherInfo.airPressure?.let { pressure ->
@@ -286,12 +291,12 @@ class SlackMessageBuilder {
                 pressure >= 1000 -> "정상 ✅"
                 else -> "낮음 📉"
             }
-            items.add("📊 **기압:** ${pressure}hPa _${pressureStatus}_")
+            items.add("📊 *기압:* ${pressure}hPa _${pressureStatus}_")
         }
 
         weatherInfo.lightning?.let { lightning ->
             if (lightning > 0) {
-                items.add("⚡ **낙뢰위험:** ${lightning}kA/㎢ 🚨 _주의필요_")
+                items.add("⚡ *낙뢰위험:* ${lightning}kA/㎢ 🚨 _주의필요_")
             }
         }
 
@@ -302,31 +307,30 @@ class SlackMessageBuilder {
         val recommendations = weatherInfo.getAllRecommendations()
 
         if (recommendations.isNotEmpty()) {
-            sb.append("\n💡 *오늘의 권고사항*\n")
-            sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+            sb.append("\n💡 *오늘의 권고사항*\n\n")
             recommendations.forEachIndexed { index, recommendation ->
                 sb.append("${index + 1}. ${recommendation}\n")
             }
         }
     }
-    
+
     private fun appendSeparator(sb: StringBuilder) {
         sb.append("\n")
     }
-    
+
     private fun appendDailyQuote(sb: StringBuilder) {
         val quote = getRandomQuote()
-        sb.append("\n\n✨ *오늘의 명언*\n")
-        sb.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-        sb.append("_${quote}_\n")
+        sb.append("\n\n✨ *오늘의 명언*\n\n")
+        sb.append("_${quote}_\n\n")
         sb.append("\n좋은 하루 되세요!")
     }
-    
+
     private fun getRandomQuote(): String {
         return try {
             val resource = ClassPathResource("quotes/daily-quotes.txt")
             if (resource.exists()) {
-                val quotes = resource.inputStream.bufferedReader().readLines().filter { it.isNotBlank() }
+                val quotes =
+                    resource.inputStream.bufferedReader().readLines().filter { it.isNotBlank() }
                 if (quotes.isNotEmpty()) {
                     quotes[Random.nextInt(quotes.size)]
                 } else {
